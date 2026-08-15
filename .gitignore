@@ -19,3 +19,6 @@ output/*.pdf
 output/*.tex
 output/*.csv
 !output/.gitkeep
+
+# Source papers (copyrighted; kept locally, not distributed)
+*.pdf
