@@ -1,0 +1,408 @@
+{
+ "settings": {
+  "B": 999,
+  "R": 60,
+  "seed": 20260625,
+  "elapsed_sec": 6255.4
+ },
+ "data": {
+  "start": "1973-01-01",
+  "end": "2020-12-01",
+  "n_months": 576,
+  "n_series": 9,
+  "regimes": {
+   "1973-1985": 156,
+   "1986-1998": 156,
+   "1999-2007": 108,
+   "2008-2020": 156
+  }
+ },
+ "bounds_validation": [
+  {
+   "k": 1,
+   "sim_lower": 4.811,
+   "sim_upper": 5.708,
+   "pub_lower": 4.94,
+   "pub_upper": 5.73
+  },
+  {
+   "k": 2,
+   "sim_lower": 3.815,
+   "sim_upper": 4.792,
+   "pub_lower": 3.79,
+   "pub_upper": 4.85
+  },
+  {
+   "k": 3,
+   "sim_lower": 3.24,
+   "sim_upper": 4.385,
+   "pub_lower": null,
+   "pub_upper": null
+  },
+  {
+   "k": 4,
+   "sim_lower": 2.906,
+   "sim_upper": 4.034,
+   "pub_lower": 2.86,
+   "pub_upper": 4.01
+  }
+ ],
+ "statsmodels_offset": {
+  "correct": [
+   4.94,
+   5.73
+  ],
+  "reported": [
+   3.79,
+   4.85
+  ]
+ },
+ "application": [
+  {
+   "regime": "1973-1985",
+   "set": "full",
+   "n": 151,
+   "controls": 7,
+   "F": 9.111,
+   "cv": 6.705,
+   "p": 0.017,
+   "verdict": "reject",
+   "alpha": -0.0018,
+   "theta": 3.814,
+   "se": 10.355
+  },
+  {
+   "regime": "1973-1985",
+   "set": "reduced",
+   "n": 151,
+   "controls": 5,
+   "F": 8.358,
+   "cv": 6.612,
+   "p": 0.029,
+   "verdict": "reject",
+   "alpha": -0.0008,
+   "theta": 10.285,
+   "se": 14.132
+  },
+  {
+   "regime": "1986-1998",
+   "set": "full",
+   "n": 151,
+   "controls": 7,
+   "F": 18.712,
+   "cv": 13.681,
+   "p": 0.012,
+   "verdict": "reject",
+   "alpha": 0.004,
+   "theta": -1.068,
+   "se": 0.366
+  },
+  {
+   "regime": "1986-1998",
+   "set": "reduced",
+   "n": 151,
+   "controls": 5,
+   "F": 32.848,
+   "cv": 10.815,
+   "p": 0.0,
+   "verdict": "reject",
+   "alpha": 0.0052,
+   "theta": -1.11,
+   "se": 0.275
+  },
+  {
+   "regime": "1999-2007",
+   "set": "full",
+   "n": 103,
+   "controls": 7,
+   "F": 0.404,
+   "cv": 3.965,
+   "p": 0.732,
+   "verdict": "fail to reject",
+   "alpha": 0.0022,
+   "theta": -0.971,
+   "se": 0.897
+  },
+  {
+   "regime": "1999-2007",
+   "set": "reduced",
+   "n": 103,
+   "controls": 5,
+   "F": 1.373,
+   "cv": 11.399,
+   "p": 0.598,
+   "verdict": "fail to reject",
+   "alpha": 0.0056,
+   "theta": -0.899,
+   "se": 0.379
+  },
+  {
+   "regime": "2008-2020",
+   "set": "full",
+   "n": 151,
+   "controls": 7,
+   "F": 3.703,
+   "cv": 10.673,
+   "p": 0.4,
+   "verdict": "fail to reject",
+   "alpha": -0.0087,
+   "theta": 0.571,
+   "se": 0.222
+  },
+  {
+   "regime": "2008-2020",
+   "set": "reduced",
+   "n": 151,
+   "controls": 5,
+   "F": 3.384,
+   "cv": 8.863,
+   "p": 0.388,
+   "verdict": "fail to reject",
+   "alpha": -0.0087,
+   "theta": 0.555,
+   "se": 0.226
+  }
+ ],
+ "diagnostic": {
+  "table": [
+   {
+    "controls": "full",
+    "m_Z projection": "adaptive",
+    "n_controls": 7,
+    "F": 0.4043,
+    "boot_cv95": 3.965,
+    "boot_p": 0.7307,
+    "verdict": "fail to reject",
+    "alpha": 0.0022,
+    "theta": -0.9715,
+    "theta_se": 0.8975
+   },
+   {
+    "controls": "full",
+    "m_Z projection": "ols",
+    "n_controls": 7,
+    "F": 1.1066,
+    "boot_cv95": 4.8055,
+    "boot_p": 0.5365,
+    "verdict": "fail to reject",
+    "alpha": 0.0183,
+    "theta": -0.0122,
+    "theta_se": 0.1652
+   },
+   {
+    "controls": "reduced",
+    "m_Z projection": "adaptive",
+    "n_controls": 5,
+    "F": 1.3728,
+    "boot_cv95": 11.0048,
+    "boot_p": 0.5966,
+    "verdict": "fail to reject",
+    "alpha": 0.0056,
+    "theta": -0.899,
+    "theta_se": 0.3786
+   },
+   {
+    "controls": "reduced",
+    "m_Z projection": "ols",
+    "n_controls": 5,
+    "F": 2.3336,
+    "boot_cv95": 7.4679,
+    "boot_p": 0.3594,
+    "verdict": "fail to reject",
+    "alpha": 0.0026,
+    "theta": -2.791,
+    "theta_se": 7.4333
+   }
+  ],
+  "delta_m": -0.1942,
+  "delta_W": 0.1341,
+  "theta_spread": 2.7788,
+  "verdict": "Concordant verdicts across control sets (full p=0.731, reduced p=0.597). The conclusion does not appear to be an artefact of over-absorption.",
+  "dropped": [
+   "m2",
+   "oil"
+  ]
+ },
+ "penalty_sweep": [
+  {
+   "lags": 4,
+   "m_Z projection": "adaptive",
+   "penalty": "low",
+   "n_selected_Z": 1,
+   "F": 0.5454,
+   "boot_cv95": null,
+   "boot_p": null,
+   "alpha": 0.0024,
+   "theta": -1.0206,
+   "theta_se": 0.9098
+  },
+  {
+   "lags": 4,
+   "m_Z projection": "adaptive",
+   "penalty": "medium",
+   "n_selected_Z": 1,
+   "F": 0.2794,
+   "boot_cv95": null,
+   "boot_p": null,
+   "alpha": 0.0021,
+   "theta": -0.915,
+   "theta_se": 0.8879
+  },
+  {
+   "lags": 4,
+   "m_Z projection": "adaptive",
+   "penalty": "high",
+   "n_selected_Z": 1,
+   "F": 0.6869,
+   "boot_cv95": null,
+   "boot_p": null,
+   "alpha": 0.0007,
+   "theta": -2.8493,
+   "theta_se": 15.7834
+  },
+  {
+   "lags": 4,
+   "m_Z projection": "plain",
+   "penalty": "low",
+   "n_selected_Z": 5,
+   "F": 0.889,
+   "boot_cv95": null,
+   "boot_p": null,
+   "alpha": 0.0145,
+   "theta": -0.0461,
+   "theta_se": 0.2463
+  },
+  {
+   "lags": 4,
+   "m_Z projection": "plain",
+   "penalty": "medium",
+   "n_selected_Z": 5,
+   "F": 1.2933,
+   "boot_cv95": null,
+   "boot_p": null,
+   "alpha": 0.0239,
+   "theta": 0.0233,
+   "theta_se": 0.1125
+  },
+  {
+   "lags": 4,
+   "m_Z projection": "plain",
+   "penalty": "high",
+   "n_selected_Z": 5,
+   "F": 0.3238,
+   "boot_cv95": null,
+   "boot_p": null,
+   "alpha": 0.0092,
+   "theta": -0.0565,
+   "theta_se": 0.4446
+  },
+  {
+   "lags": 4,
+   "m_Z projection": "ols",
+   "penalty": "-",
+   "n_selected_Z": 7,
+   "F": 1.125,
+   "boot_cv95": null,
+   "boot_p": null,
+   "alpha": 0.0543,
+   "theta": 0.0591,
+   "theta_se": 0.0341
+  }
+ ],
+ "theta_sign_flips": true,
+ "montecarlo": [
+  {
+   "design": "A",
+   "T": 200,
+   "d": 40,
+   "size rej @ 5.73": 0.183,
+   "size @ boot": 0.017,
+   "power @ boot": 0.667
+  },
+  {
+   "design": "B",
+   "T": 200,
+   "d": 40,
+   "size rej @ 5.73": 0.05,
+   "size @ boot": 0.033,
+   "power @ boot": 0.917
+  },
+  {
+   "design": "C",
+   "T": 200,
+   "d": 40,
+   "size rej @ 5.73": 0.05,
+   "size @ boot": 0.033,
+   "power @ boot": 0.867
+  },
+  {
+   "design": "D",
+   "T": 200,
+   "d": 40,
+   "size rej @ 5.73": 0.1,
+   "size @ boot": 0.033,
+   "power @ boot": 0.75
+  },
+  {
+   "design": "E",
+   "T": 200,
+   "d": 40,
+   "size rej @ 5.73": 0.1,
+   "size @ boot": 0.033,
+   "power @ boot": 0.75
+  }
+ ],
+ "ultra": [
+  {
+   "method": "Unpenalised ECM",
+   "implementable across draws": "0.0%",
+   "statistic (median, IQR)": "not defined"
+  },
+  {
+   "method": "DML-Bounds (h-block)",
+   "implementable across draws": "100.0%",
+   "statistic (median, IQR)": "2.50 (2.99)"
+  }
+ ],
+ "sample_use": {
+  "n": 108,
+  "K": [
+   4,
+   5,
+   6,
+   8
+  ],
+  "h": [
+   0,
+   2,
+   5,
+   10
+  ],
+  "values": [
+   [
+    0.75,
+    0.72,
+    0.68,
+    0.61
+   ],
+   [
+    0.8,
+    0.77,
+    0.73,
+    0.65
+   ],
+   [
+    0.83,
+    0.8,
+    0.76,
+    0.68
+   ],
+   [
+    0.88,
+    0.84,
+    0.79,
+    0.71
+   ]
+  ]
+ }
+}

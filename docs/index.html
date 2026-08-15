@@ -747,7 +747,7 @@ fetch('_results.json').then(r => r.json()).then(D => {
 
   // application
   $('apptable').innerHTML = table(
-    [{key:'regime',label:'regime'},{key:'set',label:'controls'},{key:'n',label:'n'},
+    [{key:'regime',label:'regime'},{key:'set',label:'control set'},{key:'n',label:'n'},
      {key:'F',label:'F'},{key:'cv',label:'bootstrap cv .95'},{key:'p',label:'p'},
      {key:'verdict',label:'verdict'},{key:'alpha',label:'α'},{key:'theta',label:'θ'},{key:'se',label:'se(θ)'}],
     D.application,
@@ -787,7 +787,11 @@ fetch('_results.json').then(r => r.json()).then(D => {
   $('ultratable').innerHTML = table(ulCols, D.ultra,
     'T = 100, d = 150, mixed I(0)/I(1) nuisance. Implementability, not a size comparison.');
 
-  $('genstamp').textContent = `results regenerated in ${D.settings.elapsed_sec}s · seed ${D.settings.seed}`;
+  const secs = Math.round(D.settings.elapsed_sec);
+  const dur = secs < 90 ? `${secs}s`
+            : secs < 5400 ? `${Math.round(secs / 60)} min`
+            : `${Math.floor(secs / 3600)}h ${Math.round((secs % 3600) / 60)}m`;
+  $('genstamp').textContent = `results regenerated in ${dur} · seed ${D.settings.seed}`;
 }).catch(e => {
   document.querySelectorAll('.loading:not(.loading-ex)').forEach(el => {
     el.textContent = 'Could not load results. Run: python docs/build_site_assets.py';
