@@ -1,6 +1,16 @@
 # ardldml
 
+[![PyPI](https://img.shields.io/pypi/v/ardldml?color=E8871A&label=pypi&style=flat-square)](https://pypi.org/project/ardldml/)
+[![Python](https://img.shields.io/pypi/pyversions/ardldml?color=F5B841&style=flat-square)](https://pypi.org/project/ardldml/)
+[![License](https://img.shields.io/badge/license-MIT-2A9D8F?style=flat-square)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-website-D1495B?style=flat-square)](https://merwanroudane.github.io/ardldml/)
+[![Downloads](https://img.shields.io/pypi/dm/ardldml?color=8E5572&style=flat-square)](https://pypi.org/project/ardldml/)
+
 **ARDL bounds testing for cointegration when you have many persistent controls.**
+
+📖 **[Project website with all results, tables and figures](https://merwanroudane.github.io/ardldml/)** ·
+📦 **[PyPI](https://pypi.org/project/ardldml/)** ·
+🧭 **[Step-by-step guide](docs/STEP_BY_STEP_GUIDE.md)**
 
 `ardldml` implements **DML-Bounds**: a test for a long-run (cointegrating)
 relationship in which the lagged levels are first orthogonalised against a
@@ -309,6 +319,21 @@ print(regime_table(results).to_string(index=False))
 
 Run it end to end with `python examples/02_passthrough.py`.
 
+For the complete walkthrough — the data, the classical benchmark, where the
+critical values come from, what cross-fitting costs, one fit in full, all four
+regimes, the over-absorption diagnostic, the penalty grid and the Monte Carlo,
+each with its figures and its `.csv` / `.tex` / `.md` tables — run:
+
+```bash
+python examples/04_full_analysis.py
+```
+
+Add `--quick` for the same shape in a couple of minutes, or `--skip-montecarlo`
+for the empirical results alone. That script is what the
+[worked example on the website](https://merwanroudane.github.io/ardldml/#example)
+renders: the page shows the source of each step and the output it actually
+printed, so the two cannot drift apart.
+
 > **On replication.** The paper does not publish its FRED series codes, data
 > vintage, per-control log/level treatment, or its `K` and `h` settings. The
 > mapping above is inferred, so the numbers here are **not** a replication of
@@ -516,6 +541,34 @@ the analysis of level relationships. *Journal of Applied Econometrics*, 16(3),
 
 Zou, H. (2006). The adaptive lasso and its oracle properties. *Journal of the
 American Statistical Association*, 101(476), 1418–1429.
+
+## Links
+
+| | |
+| --- | --- |
+| Website (all results, tables, figures) | <https://merwanroudane.github.io/ardldml/> |
+| PyPI | <https://pypi.org/project/ardldml/> |
+| Source | <https://github.com/merwanroudane/ardldml> |
+| Step-by-step guide | [docs/STEP_BY_STEP_GUIDE.md](docs/STEP_BY_STEP_GUIDE.md) |
+| Examples | [examples/](examples/) |
+| Changelog | [CHANGELOG.md](CHANGELOG.md) |
+| Issues | <https://github.com/merwanroudane/ardldml/issues> |
+| Companion package (`tsdml`) | <https://pypi.org/project/tsdml/> |
+
+## Author
+
+**Dr Merwan Roudane** — <merwanroudane920@gmail.com> ·
+[github.com/merwanroudane](https://github.com/merwanroudane)
+
+```bibtex
+@software{roudane_ardldml_2026,
+  author  = {Roudane, Merwan},
+  title   = {ardldml: ARDL bounds testing with many persistent controls},
+  year    = {2026},
+  version = {0.1.0},
+  url     = {https://github.com/merwanroudane/ardldml}
+}
+```
 
 ## Licence
 

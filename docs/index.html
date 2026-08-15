@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ardldml — ARDL bounds testing with many persistent controls</title>
+<meta name="description" content="DML-Bounds: a Python package for testing cointegration when the conditioning set is high-dimensional and may itself carry stochastic trends. By Dr Merwan Roudane.">
+<meta name="author" content="Merwan Roudane">
+<link rel="canonical" href="https://merwanroudane.github.io/ardldml/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://merwanroudane.github.io/ardldml/">
+<meta property="og:site_name" content="ardldml">
+<meta property="og:title" content="ardldml — ARDL bounds testing with many persistent controls">
+<meta property="og:description" content="DML-Bounds: cointegration testing when the conditioning set is high-dimensional and may itself carry stochastic trends. By Dr Merwan Roudane.">
+<meta property="og:image" content="https://merwanroudane.github.io/ardldml/img/bracket.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ardldml — ARDL bounds testing with many persistent controls">
+<meta name="twitter:description" content="DML-Bounds: cointegration testing when the conditioning set is high-dimensional and may itself carry stochastic trends.">
+<meta name="twitter:image" content="https://merwanroudane.github.io/ardldml/img/bracket.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌤️</text></svg>">
+<script>
+  window.MathJax = { tex: { inlineMath: [['\\(','\\)']], displayMath: [['$$','$$']] },
+                     options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] } };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root{
+  --amber:#E8871A; --coral:#D1495B; --teal:#2A9D8F; --gold:#F5B841;
+  --apricot:#F4A259; --plum:#8E5572;
+  --ink:#3D2C29; --ink-soft:#6B5D52; --line:#EADFCB;
+  --bg:#FFFDF7; --panel:#FFFFFF; --panel-warm:#FFF7EA;
+  --radius:14px; --maxw:1080px;
+  --shadow:0 1px 2px rgba(61,44,41,.05), 0 8px 24px rgba(61,44,41,.07);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font:16px/1.68 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 22px}
+a{color:#B4610F; text-decoration:none; border-bottom:1px solid rgba(232,135,26,.35)}
+a:hover{color:var(--coral); border-bottom-color:var(--coral)}
+code,kbd{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.88em}
+code{background:var(--panel-warm); border:1px solid var(--line); border-radius:5px; padding:.1em .38em}
+pre{
+  background:#3B2E27; color:#FFF3E2; padding:16px 18px; border-radius:var(--radius);
+  overflow-x:auto; font-size:13.5px; line-height:1.6; box-shadow:var(--shadow);
+}
+pre code{background:none; border:0; padding:0; color:inherit}
+pre .c{color:#C9AE8C; font-style:italic}
+pre .k{color:#F5B841}
+pre .s{color:#9FD8A0}
+
+/* ---------- hero ---------- */
+header.hero{
+  background:
+    radial-gradient(1200px 380px at 8% -12%, rgba(245,184,65,.55), transparent 62%),
+    radial-gradient(900px 420px at 92% 0%, rgba(209,73,91,.38), transparent 60%),
+    linear-gradient(135deg,#FFB74A 0%,#F08A3C 42%,#E0655C 100%);
+  color:#FFF9EF; padding:60px 0 0; position:relative; overflow:hidden;
+}
+header.hero::after{
+  content:""; position:absolute; inset:auto 0 -1px 0; height:64px;
+  background:linear-gradient(to bottom, transparent, var(--bg));
+}
+.sun{
+  position:absolute; top:-90px; right:-70px; width:300px; height:300px; border-radius:50%;
+  background:radial-gradient(circle at 34% 34%, #FFF0C4, #FFD166 46%, rgba(255,209,102,0) 71%);
+  opacity:.7; pointer-events:none;
+}
+.eyebrow{
+  text-transform:uppercase; letter-spacing:.16em; font-size:12px; font-weight:700;
+  opacity:.92; margin:0 0 10px;
+}
+h1{font-size:clamp(38px,6vw,62px); line-height:1.03; margin:0 0 12px; letter-spacing:-.02em}
+h1 .dot{color:#FFE29A}
+.tagline{font-size:clamp(17px,2.2vw,21px); max-width:62ch; margin:0 0 8px; opacity:.97}
+.byline{font-size:15px; opacity:.9; margin:14px 0 22px}
+.byline strong{font-weight:700}
+.badges{display:flex; flex-wrap:wrap; gap:9px; margin:0 0 26px}
+.badges img{height:22px; display:block}
+.cta{display:flex; flex-wrap:wrap; gap:11px; padding-bottom:56px}
+.btn{
+  display:inline-block; padding:11px 20px; border-radius:999px; font-size:15px;
+  font-weight:600; border:0; transition:transform .12s ease, box-shadow .12s ease;
+}
+.btn:hover{transform:translateY(-1px); box-shadow:0 8px 20px rgba(61,44,41,.22)}
+.btn-a{background:#FFF9EF; color:#B4610F}
+.btn-b{background:rgba(255,249,239,.16); color:#FFF9EF; box-shadow:inset 0 0 0 1.5px rgba(255,249,239,.6)}
+
+/* ---------- nav ---------- */
+nav.toc{
+  position:sticky; top:0; z-index:20; background:rgba(255,253,247,.93);
+  backdrop-filter:saturate(180%) blur(9px); border-bottom:1px solid var(--line);
+}
+nav.toc ul{
+  display:flex; gap:6px; list-style:none; margin:0 auto; padding:9px 22px;
+  max-width:var(--maxw); overflow-x:auto; scrollbar-width:none;
+}
+nav.toc ul::-webkit-scrollbar{display:none}
+nav.toc a{
+  display:block; padding:6px 12px; border-radius:999px; font-size:14px;
+  white-space:nowrap; color:var(--ink-soft); border:0;
+}
+nav.toc a:hover{background:var(--panel-warm); color:var(--amber)}
+
+/* ---------- sections ---------- */
+section{padding:52px 0 8px}
+h2{
+  font-size:clamp(25px,3.4vw,33px); margin:0 0 6px; letter-spacing:-.01em;
+  display:flex; align-items:center; gap:12px;
+}
+h2::before{
+  content:""; width:26px; height:5px; border-radius:3px; flex:none;
+  background:linear-gradient(90deg,var(--gold),var(--amber),var(--coral));
+}
+h3{font-size:20px; margin:30px 0 8px}
+h4{font-size:16.5px; margin:22px 0 6px; color:var(--ink-soft)}
+.lede{font-size:17.5px; color:var(--ink-soft); max-width:70ch; margin:0 0 18px}
+p{max-width:74ch}
+
+/* ---------- panels & grids ---------- */
+.panel{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:22px 24px; box-shadow:var(--shadow); margin:20px 0;
+}
+.panel.warm{background:var(--panel-warm)}
+.grid{display:grid; gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
+.card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:18px 20px; box-shadow:var(--shadow);
+}
+.card h4{margin:0 0 6px; color:var(--amber); font-size:15px; letter-spacing:.02em}
+.card p{margin:0; font-size:14.5px; color:var(--ink-soft)}
+.stat{font-size:31px; font-weight:700; line-height:1.1; margin:2px 0 4px}
+.stat.amber{color:var(--amber)} .stat.coral{color:var(--coral)} .stat.teal{color:var(--teal)}
+
+.callout{
+  border-left:5px solid var(--amber); background:var(--panel-warm);
+  border-radius:0 var(--radius) var(--radius) 0; padding:16px 20px; margin:20px 0;
+}
+.callout.warn{border-left-color:var(--coral)}
+.callout.good{border-left-color:var(--teal)}
+.callout p{margin:.35em 0}
+.callout strong{color:var(--ink)}
+
+/* ---------- tables ---------- */
+.tablewrap{overflow-x:auto; margin:16px 0; border-radius:var(--radius); border:1px solid var(--line); box-shadow:var(--shadow)}
+table{border-collapse:collapse; width:100%; background:var(--panel); font-size:14px}
+th,td{padding:9px 13px; text-align:right; border-bottom:1px solid var(--line); white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{
+  background:linear-gradient(180deg,#FFF3DF,#FFE9C9); color:#7A4A12;
+  font-weight:700; font-size:12.5px; text-transform:uppercase; letter-spacing:.05em;
+  position:sticky; top:0;
+}
+tbody tr:hover{background:#FFFAF0}
+tbody tr:last-child td{border-bottom:0}
+td.reject{color:var(--teal); font-weight:700}
+td.fail{color:var(--ink-soft)}
+caption{caption-side:bottom; text-align:left; padding:11px 13px; font-size:13px; color:var(--ink-soft); background:var(--panel)}
+
+/* ---------- figures ---------- */
+figure{margin:22px 0}
+figure img{
+  width:100%; height:auto; display:block; border-radius:var(--radius);
+  border:1px solid var(--line); background:var(--panel); box-shadow:var(--shadow);
+}
+figure a{border:0; display:block}
+figcaption{font-size:13.5px; color:var(--ink-soft); margin-top:9px; max-width:74ch}
+.figrow{display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+
+/* ---------- misc ---------- */
+.pill{
+  display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px;
+  font-weight:700; letter-spacing:.03em;
+}
+.pill.ok{background:#DEF3EF; color:#1C6B60}
+.pill.no{background:#FBE3E7; color:#9B2B3C}
+ul.tick{list-style:none; padding-left:0}
+ul.tick li{padding-left:26px; position:relative; margin:.42em 0}
+ul.tick li::before{content:"☀"; position:absolute; left:0; color:var(--gold); font-size:15px}
+/* ---------- worked example ---------- */
+.runmeta{
+  display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 6px; align-items:center;
+}
+.tag{
+  display:inline-block; padding:3px 11px; border-radius:999px; font-size:12.5px;
+  background:var(--panel-warm); border:1px solid var(--line); color:var(--ink-soft);
+}
+.tag b{color:var(--ink); font-weight:700}
+.step{
+  border-left:3px solid var(--line); padding:0 0 6px 22px; margin:34px 0 0;
+  position:relative;
+}
+.step::before{
+  content:attr(data-n); position:absolute; left:-15px; top:2px;
+  width:27px; height:27px; border-radius:50%; display:grid; place-items:center;
+  background:linear-gradient(135deg,var(--gold),var(--amber)); color:#fff;
+  font-size:13px; font-weight:700; font-family:ui-monospace,monospace;
+  box-shadow:0 2px 6px rgba(232,135,26,.35);
+}
+.step h3{margin:0 0 6px; font-size:19.5px}
+.step .blurb{color:var(--ink-soft); max-width:72ch; margin:0 0 12px; font-size:15.5px}
+.step .secs{font-size:12px; color:var(--ink-soft); font-family:ui-monospace,monospace}
+details.code{margin:12px 0}
+details.code summary{
+  cursor:pointer; font-size:13.5px; color:var(--amber); font-weight:600;
+  list-style:none; display:inline-flex; align-items:center; gap:7px;
+  padding:5px 13px; border-radius:999px; background:var(--panel-warm);
+  border:1px solid var(--line);
+}
+details.code summary::-webkit-details-marker{display:none}
+details.code summary::before{content:"▸"; font-size:11px}
+details.code[open] summary::before{content:"▾"}
+details.code summary:hover{color:var(--coral)}
+pre.term{
+  background:#332720; color:#F0E2CE; font-size:12.5px; line-height:1.55;
+  max-height:460px; overflow:auto;
+}
+pre.term::selection{background:var(--amber)}
+.figgrid{display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); margin:16px 0}
+.figgrid figure{margin:0}
+footer{
+  margin-top:64px; padding:40px 0 52px; border-top:1px solid var(--line);
+  background:linear-gradient(180deg, transparent, #FFF4E3);
+}
+footer .wrap{display:flex; flex-wrap:wrap; gap:26px; justify-content:space-between; align-items:flex-start}
+.muted{color:var(--ink-soft); font-size:14px}
+.loading{color:var(--ink-soft); font-style:italic; padding:12px 0}
+@media (max-width:640px){
+  .cta{padding-bottom:40px} section{padding:38px 0 6px}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="sun"></div>
+  <div class="wrap">
+    <p class="eyebrow">Python package · econometrics</p>
+    <h1>ardldml<span class="dot">.</span></h1>
+    <p class="tagline">ARDL bounds testing for cointegration when your conditioning set is
+      high-dimensional — and may itself be carrying stochastic trends.</p>
+    <p class="byline">by <strong>Dr Merwan Roudane</strong></p>
+    <div class="badges">
+      <a href="https://pypi.org/project/ardldml/"><img alt="PyPI" src="https://img.shields.io/pypi/v/ardldml?color=E8871A&label=pypi&style=flat-square"></a>
+      <a href="https://pypi.org/project/ardldml/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/ardldml?color=F5B841&style=flat-square"></a>
+      <a href="https://github.com/merwanroudane/ardldml/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-2A9D8F?style=flat-square"></a>
+      <a href="https://github.com/merwanroudane/ardldml"><img alt="Stars" src="https://img.shields.io/github/stars/merwanroudane/ardldml?color=D1495B&style=flat-square"></a>
+    </div>
+    <div class="cta">
+      <a class="btn btn-a" href="https://pypi.org/project/ardldml/">Install from PyPI</a>
+      <a class="btn btn-b" href="https://github.com/merwanroudane/ardldml">GitHub repository</a>
+      <a class="btn btn-b" href="https://github.com/merwanroudane/ardldml/blob/main/docs/STEP_BY_STEP_GUIDE.md">Step-by-step guide</a>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <ul>
+    <li><a href="#start">Quick start</a></li>
+    <li><a href="#theory">Theory</a></li>
+    <li><a href="#method">Method</a></li>
+    <li><a href="#validation">Validation</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#diagnostic">Diagnostic</a></li>
+    <li><a href="#montecarlo">Monte Carlo</a></li>
+    <li><a href="#example">Worked example</a></li>
+    <li><a href="#api">API</a></li>
+    <li><a href="#limits">Limitations</a></li>
+    <li><a href="#cite">Cite</a></li>
+  </ul>
+</nav>
+
+<!-- ==================== QUICK START ==================== -->
+<section id="start" class="wrap">
+  <h2>Quick start</h2>
+  <p class="lede">Install, load the bundled macroeconomic data, test, bootstrap. Nothing
+    else is required — the dataset ships with the package.</p>
+
+<pre><code><span class="c"># pip install ardldml</span>
+<span class="k">from</span> ardldml <span class="k">import</span> DMLBounds, load_passthrough, CONTROLS
+
+df = load_passthrough(regime=<span class="s">"1999-2007"</span>)      <span class="c"># real monthly FRED-MD data</span>
+
+res = (
+    DMLBounds(df[<span class="s">"cpi"</span>], df[<span class="s">"neer"</span>], df[CONTROLS],
+              lags=<span class="s">4</span>, n_blocks=<span class="s">5</span>, buffer=<span class="s">6</span>,
+              integrated=[<span class="s">"m2"</span>, <span class="s">"ip"</span>, <span class="s">"oil"</span>, <span class="s">"gs10"</span>, <span class="s">"baa"</span>, <span class="s">"ffr"</span>])
+    .fit()
+    .bootstrap(B=<span class="s">999</span>, seed=<span class="s">20260625</span>)
+)
+print(res.summary())</code></pre>
+
+  <div class="grid g3">
+    <div class="card"><div class="stat amber" id="s-months">—</div>
+      <h4>months of real data</h4><p>FRED-MD, 1973–2020, bundled offline.</p></div>
+    <div class="card"><div class="stat coral">86</div>
+      <h4>tests, 44 compliance</h4><p>Each cites the paper passage it enforces.</p></div>
+    <div class="card"><div class="stat teal">0</div>
+      <h4>bounds tables shipped</h4><p>Every critical value is generated.</p></div>
+  </div>
+</section>
+
+<!-- ==================== THEORY ==================== -->
+<section id="theory" class="wrap">
+  <h2>The theory, briefly</h2>
+  <p class="lede">Classical bounds testing brackets one unknown. With many persistent
+    controls a second one appears, and it changes what the null distribution is.</p>
+
+  <h3>The classical problem</h3>
+  <p>Pesaran, Shin and Smith (2001) test for a long-run relationship inside a conditional
+    error-correction model,</p>
+  $$\Delta Y_t = a_0 + \rho Y_{t-1} + \theta D_{t-1} + \delta \Delta D_t
+    + \sum_i \gamma_i \Delta Y_{t-i} + e_t$$
+  <p>with the joint null \(H_0:\rho=\theta=0\) on the lagged levels
+    \(Z_{t-1}=(Y_{t-1},D_{t-1})'\). Because the integration order of \(D\) is unknown, they
+    bracket it: the lower critical value treats \(D\) as \(I(0)\), the upper as \(I(1)\),
+    and the statistic is read against the interval. Outside it the verdict is conclusive;
+    inside it, inconclusive.</p>
+
+  <h3>The second unknown</h3>
+  <p>Now condition on a large control set \(W_t=(W_{0t},W_{1t})\), stationary and integrated
+    blocks. Projecting the lagged levels onto controls that themselves carry stochastic
+    trends can <em>absorb</em> part of the long-run variation that identifies the
+    error-correction relation. What then governs the null is not the integration order of
+    the original regressors but the <strong>effective integrated count</strong></p>
+  $$\tilde k \;=\; k - r$$
+  <p>where \(r\) is the number of cointegrating relations between the tested levels and the
+    integrated control block. The bracket reappears, over a different quantity.</p>
+
+  <div class="grid g3">
+    <div class="card"><h4>k̃ = k</h4><p>Nothing absorbed. The null sits at the classical
+      \(I(1)\) upper endpoint — the ordinary bounds test.</p></div>
+    <div class="card"><h4>0 &lt; k̃ &lt; k</h4><p>Partial absorption. Strictly inside the
+      classical bracket, at a point you do not know.</p></div>
+    <div class="card"><h4>k̃ = 0</h4><p>Fully absorbed. The \(I(0)\) lower endpoint — the
+      relation has been partialled away.</p></div>
+  </div>
+
+  <figure>
+    <img src="img/bracket.png" alt="The trend-absorption bracket">
+    <figcaption><strong>The trend-absorption bracket.</strong> As \(\tilde k\) falls from
+      \(k\) to 0, the limiting null slides from the \(I(1)\) endpoint to the \(I(0)\)
+      endpoint. Classical bounds testing is the right-hand end.</figcaption>
+  </figure>
+
+  <div class="callout good">
+    <p><strong>Stationary controls are harmless.</strong> A stationary regressor cannot
+      track the stochastic trend of an integrated one, so it cannot absorb one. Add a
+      hundred and \(\tilde k = k\) still. Only <em>integrated</em> controls make the bracket
+      live.</p>
+  </div>
+
+  <h3>Why there is no bounds table here</h3>
+  <p>Tabulated critical values are not valid in this setting. The generated-regressor
+    remainder is \(O_p(s\log d/\sqrt{T})\), which at \(s=3,\,d=40,\,T=200\) is about
+    <strong>0.78</strong> — order one, not negligible. The first-order asymptotics have not
+    taken hold at the sample sizes applied work actually uses. Every critical value in this
+    package is computed instead:</p>
+  <ul class="tick">
+    <li><strong>Restricted system wild bootstrap</strong> — inference on real data.</li>
+    <li><strong>Simulated null of the DGP</strong> — Monte Carlo only; infeasible in practice.</li>
+    <li><strong>Regenerated classical bracket</strong> — as a benchmark, simulated from the
+      data-generating process Pesaran, Shin and Smith printed in the notes to their Table CI.</li>
+  </ul>
+</section>
+
+<!-- ==================== METHOD ==================== -->
+<section id="method" class="wrap">
+  <h2>Three moving parts</h2>
+
+  <h3>1 · A balanced first stage</h3>
+  <p>The two projections use <em>different</em> regressors, because their targets have
+    different integration orders. Regressing a stationary target on integrated levels would
+    be unbalanced and spurious.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Target</th><th>Order</th><th>Projected on</th></tr></thead>
+    <tbody>
+      <tr><td>\(\Delta Y_t\)</td><td>I(0)</td><td>stationary controls in <strong>levels</strong>,
+        integrated controls in <strong>differences</strong>, lagged \(\Delta Y\), contemporaneous \(\Delta D\)</td></tr>
+      <tr><td>\(Z_{t-1}=(Y_{t-1},D_{t-1})\)</td><td>I(1)</td><td>control <strong>levels</strong></td></tr>
+    </tbody>
+    <caption>All trend absorption happens in the second row — which is the only place
+      \(\tilde k\) is determined.</caption>
+  </table></div>
+
+  <h3>2 · h-block cross-fitting</h3>
+  <p>The sample is cut into \(K\) contiguous chronological blocks, and each is evaluated by
+    a model trained on the others <em>minus an \(h\)-observation buffer</em>. The buffer is
+    what decouples first-stage error from the evaluation-fold innovations. It costs sample,
+    and the package makes that cost visible before you commit to a configuration.</p>
+  <figure>
+    <img src="img/blocks.png" alt="h-block cross-fitting partition">
+    <figcaption><strong>What cross-fitting did to the sample.</strong> Orange is the
+      evaluation window, pale amber the training set, white the discarded buffer.</figcaption>
+  </figure>
+  <div id="sampleuse"><p class="loading">loading sample-use grid…</p></div>
+
+  <h3>3 · A restricted system wild bootstrap</h3>
+  <p>One Rademacher weight \(\eta_t\in\{-1,+1\}\) is applied to the <strong>stacked</strong>
+    pair of conditional and marginal residuals, \((\epsilon^*_t,v^*_t)=(\hat\epsilon_t\eta_t,\hat v_t\eta_t)\),
+    and \(Y^*\) and \(D^*\) are regenerated jointly. This preserves the contemporaneous
+    correlation between them — the endogeneity channel the whole Pesaran–Shin–Smith
+    framework exists for. A scheme that holds \(D\) fixed and reweights only the equation
+    error simulates a world with \(\mathrm{corr}(\epsilon,v)=0\) whatever the data say.</p>
+  <p>The nuisance space is held at its realised path, which conditions the bootstrap on the
+    realised trend content — the object the bracket is built on.</p>
+</section>
+
+<!-- ==================== VALIDATION ==================== -->
+<section id="validation" class="wrap">
+  <h2>Validation</h2>
+  <p class="lede">The classical bracket is regenerated from the original data-generating
+    process rather than transcribed, which makes it checkable against print — and extends
+    it to any sample size and past \(k=10\), where the published tables stop.</p>
+  <div id="boundstable"><p class="loading">loading…</p></div>
+
+  <div class="callout warn">
+    <p><strong>A bug in <code>statsmodels</code>.</strong>
+      <code>UECMResults.bounds_test</code> indexes its critical-value table with \(k+1\)
+      instead of \(k\), so every bound it reports is one row too far down, hence too small,
+      and the test <strong>over-rejects</strong>.</p>
+    <p id="offsettext" class="muted">loading…</p>
+    <p><code>ardldml</code> never calls it; <code>classical_bounds_test</code> computes the
+      Wald statistic itself and reads it against a simulated bracket.</p>
+  </div>
+</section>
+
+<!-- ==================== RESULTS ==================== -->
+<section id="results" class="wrap">
+  <h2>Application: exchange-rate pass-through</h2>
+  <p class="lede">Does the dollar pass through to U.S. consumer prices in the long run,
+    conditional on the macro-financial environment? Monthly FRED-MD data, four monetary
+    regimes, seven controls.</p>
+
+  <figure>
+    <img src="img/regimes.png" alt="Trade-weighted dollar across monetary regimes">
+    <figcaption>The trade-weighted dollar, with the four monetary regimes shaded. Testing
+      within regimes rather than across them avoids conflating a structural break with a
+      long-run relationship.</figcaption>
+  </figure>
+
+  <figure>
+    <img src="img/series.png" alt="All nine series">
+    <figcaption>All nine series: the log CPI and log dollar index, plus M2, the federal
+      funds rate, industrial production, unemployment, the WTI oil price, and the ten-year
+      and Baa yields.</figcaption>
+  </figure>
+
+  <h3>Results by regime</h3>
+  <div id="apptable"><p class="loading">loading…</p></div>
+
+  <h3>The simulated null</h3>
+  <p>This is the figure to show anyone who asks why a table was not used. The gap between
+    the bootstrap critical value and the borrowed classical bound is the entire argument.</p>
+  <div class="figrow">
+    <figure><img src="img/null_1973_1985.png" alt="Bootstrap null, 1973-1985"><figcaption>1973–1985</figcaption></figure>
+    <figure><img src="img/null_1986_1998.png" alt="Bootstrap null, 1986-1998"><figcaption>1986–1998</figcaption></figure>
+    <figure><img src="img/null_1999_2007.png" alt="Bootstrap null, 1999-2007"><figcaption>1999–2007</figcaption></figure>
+    <figure><img src="img/null_2008_2020.png" alt="Bootstrap null, 2008-2020"><figcaption>2008–2020</figcaption></figure>
+  </div>
+
+  <div class="callout">
+    <p><strong>On replication.</strong> The source paper does not publish its FRED series
+      codes, data vintage, per-control log/level treatment, or its cross-fitting settings,
+      so the data mapping here is inferred. These numbers are <em>not</em> a replication of
+      its published table and should not be cited as one. What does reproduce exactly is the
+      sample design — 156, 156, 108 and 156 observations across the four regimes.</p>
+  </div>
+</section>
+
+<!-- ==================== DIAGNOSTIC ==================== -->
+<section id="diagnostic" class="wrap">
+  <h2>The diagnostic you must run</h2>
+  <p class="lede">The estimand is conditional. If a control is itself part of the
+    equilibrium system, residualising removes the relation rather than the confounding —
+    and a non-rejection then means nothing.</p>
+
+  <p>Four fits: full and reduced control sets crossed with the adaptive and unpenalised
+    level projection. Two gaps, read together with the stability of the long-run
+    coefficient:</p>
+  $$\Delta_m = p_{\text{ols}} - p_{\text{ad}}, \qquad
+    \Delta_W = p_{\text{full}} - p_{\text{red}}$$
+
+  <div id="diagtable"><p class="loading">loading…</p></div>
+  <div id="diagverdict"></div>
+
+  <figure>
+    <img src="img/diagnostic.png" alt="Full versus reduced p-values across regimes">
+    <figcaption>Full against reduced conditioning set across the four regimes. A verdict
+      that flips when trend-sharing controls are dropped is the signature of
+      over-absorption.</figcaption>
+  </figure>
+
+  <h3>Penalty sensitivity</h3>
+  <p>The paper's own robustness tables vary the penalty and the projection, and a verdict
+    can turn on that choice. Reporting one cell is specification search; reporting the grid
+    is the method. The column to watch is the number of control <em>levels</em> retained —
+    the empirical counterpart of \(\tilde k\).</p>
+  <div id="sweeptable"><p class="loading">loading…</p></div>
+</section>
+
+<!-- ==================== MONTE CARLO ==================== -->
+<section id="montecarlo" class="wrap">
+  <h2>Monte Carlo</h2>
+  <p class="lede">Does the borrowed bound over-reject, and does the bootstrap fix it?</p>
+
+  <figure>
+    <img src="img/size.png" alt="Empirical size: borrowed bound versus bootstrap">
+    <figcaption><strong>Empirical size under the null.</strong> The borrowed classical bound
+      over-rejects badly once the nuisance space is integrated; the restricted system wild
+      bootstrap holds size near the nominal 5%.</figcaption>
+  </figure>
+
+  <div id="mctable"><p class="loading">loading…</p></div>
+
+  <h3>When the classical test cannot run at all</h3>
+  <p>At \(T=100\) with \(d=150\) controls the unpenalised conditional ECM has a singular
+    Gram matrix in every replication — no statistic exists. The regularised procedure
+    remains estimable.</p>
+  <div id="ultratable"><p class="loading">loading…</p></div>
+</section>
+
+<!-- ==================== WORKED EXAMPLE ==================== -->
+<section id="example" class="wrap">
+  <h2>The full worked example</h2>
+  <p class="lede">One script, the real bundled data, every table and every
+    figure the package can produce — in order, with the reasoning in between.
+    What follows is not a write-up of that script: it <em>is</em> that script,
+    rendered from the manifest of an actual run. The code shown under each step
+    is the source of the function that ran, and the console block is what it
+    printed.</p>
+
+<pre><code><span class="c"># the whole thing, ~15-40 minutes depending on B and R</span>
+python examples/04_full_analysis.py
+
+<span class="c"># the same shape in a couple of minutes</span>
+python examples/04_full_analysis.py --quick
+
+<span class="c"># empirical results only, no simulation study</span>
+python examples/04_full_analysis.py --skip-montecarlo</code></pre>
+
+  <p>Every step writes its figures as <code>.png</code> and its tables as
+    <code>.csv</code>, <code>.tex</code> (booktabs, caption and notes attached)
+    and <code>.md</code>, into <code>--outdir</code>. Nothing is downloaded:
+    the FRED-MD series ship inside the package.</p>
+
+  <div id="runmeta"></div>
+  <div id="walkthrough"><p class="loading loading-ex">loading the worked example…</p></div>
+
+  <p style="margin-top:26px"><a href="https://github.com/merwanroudane/ardldml/blob/main/examples/04_full_analysis.py">Read the script on GitHub →</a></p>
+</section>
+
+<!-- ==================== API ==================== -->
+<section id="api" class="wrap">
+  <h2>API and documentation</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h4>Step-by-step guide</h4>
+      <p>A tutorial from zero: what the question is, the classical test first, where bounds
+        come from, your first fit, reading the output, and the mistakes to avoid.</p>
+      <p style="margin-top:10px"><a href="https://github.com/merwanroudane/ardldml/blob/main/docs/STEP_BY_STEP_GUIDE.md">Open the guide →</a></p>
+    </div>
+    <div class="card">
+      <h4>Runnable examples</h4>
+      <p><code>01_quickstart.py</code> — the shortest complete run.<br>
+         <code>02_passthrough.py</code> — all four regimes, figures and LaTeX.<br>
+         <code>03_montecarlo.py</code> — size and power across designs.<br>
+         <code>04_full_analysis.py</code> — everything, in order; it is what the
+         <a href="#example">worked example</a> above renders.</p>
+      <p style="margin-top:10px"><a href="https://github.com/merwanroudane/ardldml/tree/main/examples">Browse examples →</a></p>
+    </div>
+    <div class="card">
+      <h4>README</h4>
+      <p>Full syntax reference: every argument of <code>DMLBounds</code>, every result
+        field, tuning guidance for \(K\), \(h\) and the penalty.</p>
+      <p style="margin-top:10px"><a href="https://github.com/merwanroudane/ardldml#readme">Read it →</a></p>
+    </div>
+    <div class="card">
+      <h4>Issues and source</h4>
+      <p>Thirteen modules, ~4,500 lines, MIT licensed. Bug reports and method questions
+        equally welcome.</p>
+      <p style="margin-top:10px"><a href="https://github.com/merwanroudane/ardldml/issues">Open an issue →</a></p>
+    </div>
+  </div>
+
+  <h3>Main entry points</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Function</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>DMLBounds</code></td><td>fit the orthogonalised bounds test</td></tr>
+      <tr><td><code>.bootstrap()</code></td><td>Algorithm 1 — the critical value and p-value</td></tr>
+      <tr><td><code>trend_absorption</code></td><td>the four-fit over-absorption diagnostic</td></tr>
+      <tr><td><code>penalty_sensitivity</code></td><td>sweep estimators against penalty rules</td></tr>
+      <tr><td><code>classical_bounds_test</code></td><td>the ordinary three-step benchmark</td></tr>
+      <tr><td><code>simulate_pss_bounds</code></td><td>regenerate the classical bracket at any \(T\), any \(k\)</td></tr>
+      <tr><td><code>load_passthrough</code></td><td>the bundled FRED-MD dataset</td></tr>
+      <tr><td><code>run_design</code>, <code>run_ultra_check</code></td><td>the paper's Monte Carlo designs</td></tr>
+      <tr><td><code>plot_*</code>, <code>to_latex</code></td><td>journal-quality figures and booktabs tables</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ==================== LIMITATIONS ==================== -->
+<section id="limits" class="wrap">
+  <h2>Honest limitations</h2>
+  <p class="lede">Stated plainly, because they affect how a result should be read.</p>
+  <div class="grid g2">
+    <div class="card"><h4>Power is modest at small T</h4>
+      <p>Under integrated nuisance, bootstrap power reaches useful levels only from
+        \(T\approx250\). Much applied ARDL work runs at \(n=30\text{–}80\), where this
+        method is not the right tool. Use the classical test with simulated finite-sample
+        bounds instead.</p></div>
+    <div class="card"><h4>Over-absorption is not testable</h4>
+      <p>The requirement that controls span confounding trends but not the cointegrating
+        relation cannot be verified. The diagnostic is a signal, not a guarantee.</p></div>
+    <div class="card"><h4>The penalty can change the verdict</h4>
+      <p>On the bundled data the adaptive projection retains almost no control levels at the
+        default penalty — effectively the \(\tilde k=k\) corner — while looser penalties
+        absorb controls and can flip the sign of \(\theta\). Report the grid.</p></div>
+    <div class="card"><h4>θ is less reliable than the verdict</h4>
+      <p>Across the four regimes the long-run coefficient is unstable and often imprecisely
+        estimated. The test decisions are stable and concordant; the coefficient is not.</p></div>
+    <div class="card"><h4>The integrated block must stay small</h4>
+      <p>The validity theory keeps it fixed-dimensional. Selecting among many integrated
+        regressors is an open problem, and the package warns when you cross a threshold.</p></div>
+    <div class="card"><h4>Bootstrap validity is conditional</h4>
+      <p>Consistency is established under oracle projections; the step to the feasible
+        procedure with estimated first stages rests on a high-level assumption.</p></div>
+  </div>
+</section>
+
+<!-- ==================== CITE ==================== -->
+<section id="cite" class="wrap">
+  <h2>Author and citation</h2>
+  <div class="panel warm">
+    <h3 style="margin-top:0">Dr Merwan Roudane</h3>
+    <p class="muted">Author and maintainer ·
+      <a href="mailto:merwanroudane920@gmail.com">merwanroudane920@gmail.com</a> ·
+      <a href="https://github.com/merwanroudane">github.com/merwanroudane</a></p>
+    <p class="muted">Also the author of
+      <a href="https://pypi.org/project/tsdml/">tsdml</a>, double machine learning for time
+      series with reverse cross-fitting and Goldilocks-zone tuning.</p>
+  </div>
+
+<pre><code>@software{roudane_ardldml_2026,
+  author  = {Roudane, Merwan},
+  title   = {ardldml: ARDL bounds testing with many persistent controls},
+  year    = {2026},
+  version = {0.1.0},
+  url     = {https://github.com/merwanroudane/ardldml}
+}</code></pre>
+
+  <h3>References</h3>
+  <p class="muted">
+    Pesaran, M. H., Shin, Y. and Smith, R. J. (2001). Bounds testing approaches to the
+    analysis of level relationships. <em>Journal of Applied Econometrics</em>, 16(3),
+    289–326.<br>
+    Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W. and
+    Robins, J. (2018). Double/debiased machine learning for treatment and structural
+    parameters. <em>The Econometrics Journal</em>, 21(1), C1–C68.<br>
+    McCracken, M. W. and Ng, S. (2016). FRED-MD: A monthly database for macroeconomic
+    research. <em>Journal of Business &amp; Economic Statistics</em>, 34(4), 574–589.<br>
+    Narayan, P. K. (2004). Reformulating critical values for the bounds F-statistics
+    approach to cointegration. Monash University Discussion Paper 02/04.<br>
+    Zou, H. (2006). The adaptive lasso and its oracle properties. <em>Journal of the
+    American Statistical Association</em>, 101(476), 1418–1429.
+  </p>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <strong>ardldml</strong> <span class="muted">· v0.1.0 · MIT</span>
+      <p class="muted" style="margin:.4em 0 0">© 2026 Merwan Roudane</p>
+    </div>
+    <div class="muted">
+      <a href="https://pypi.org/project/ardldml/">PyPI</a> ·
+      <a href="https://github.com/merwanroudane/ardldml">GitHub</a> ·
+      <a href="https://github.com/merwanroudane/ardldml/blob/main/docs/STEP_BY_STEP_GUIDE.md">Guide</a> ·
+      <a href="https://github.com/merwanroudane/ardldml/blob/main/CHANGELOG.md">Changelog</a> ·
+      <a href="https://github.com/merwanroudane/ardldml/issues">Issues</a>
+    </div>
+    <div class="muted" id="genstamp"></div>
+  </div>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+function table(cols, rows, caption, classer) {
+  let h = '<div class="tablewrap"><table><thead><tr>';
+  cols.forEach(c => h += `<th>${esc(c.label)}</th>`);
+  h += '</tr></thead><tbody>';
+  rows.forEach(r => {
+    h += '<tr>';
+    cols.forEach(c => {
+      const v = r[c.key];
+      const cls = classer ? (classer(c.key, v, r) || '') : '';
+      h += `<td class="${cls}">${v === null || v === undefined ? '' : esc(v)}</td>`;
+    });
+    h += '</tr>';
+  });
+  h += '</tbody>';
+  if (caption) h += `<caption>${caption}</caption>`;
+  return h + '</table></div>';
+}
+
+const verdictClass = (k, v) =>
+  k === 'verdict' ? (String(v).startsWith('reject') ? 'reject' : 'fail') : '';
+
+fetch('_results.json').then(r => r.json()).then(D => {
+  // headline stat
+  $('s-months').textContent = D.data.n_months;
+
+  // sample use
+  const su = D.sample_use;
+  let sh = '<div class="tablewrap"><table><thead><tr><th>K \\ h</th>';
+  su.h.forEach(h => sh += `<th>h = ${h}</th>`);
+  sh += '</tr></thead><tbody>';
+  su.K.forEach((k, i) => {
+    sh += `<tr><td><strong>K = ${k}</strong></td>`;
+    su.values[i].forEach(v => sh += `<td>${(v * 100).toFixed(0)}%</td>`);
+    sh += '</tr>';
+  });
+  sh += `</tbody><caption>Average share of the sample available for training, at n = ${su.n}.
+         Buffering is not free — this is why power is weak at small T.</caption></table></div>`;
+  $('sampleuse').innerHTML = sh;
+
+  // bounds validation
+  $('boundstable').innerHTML = table(
+    [{key:'k',label:'k'},{key:'sim_lower',label:'simulated I(0)'},{key:'pub_lower',label:'published I(0)'},
+     {key:'sim_upper',label:'simulated I(1)'},{key:'pub_upper',label:'published I(1)'}],
+    D.bounds_validation, 'Regenerated 5% bounds against the published table, case III, T = 1000. ' +
+    'Agreement to Monte Carlo error, with no table stored in the package.');
+
+  const off = D.statsmodels_offset;
+  $('offsettext').innerHTML = `With one regressor it reports <strong>(${off.reported[0]}, ${off.reported[1]})</strong> ` +
+    `where the correct row is <strong>(${off.correct[0]}, ${off.correct[1]})</strong>.`;
+
+  // application
+  $('apptable').innerHTML = table(
+    [{key:'regime',label:'regime'},{key:'set',label:'controls'},{key:'n',label:'n'},
+     {key:'F',label:'F'},{key:'cv',label:'bootstrap cv .95'},{key:'p',label:'p'},
+     {key:'verdict',label:'verdict'},{key:'alpha',label:'α'},{key:'theta',label:'θ'},{key:'se',label:'se(θ)'}],
+    D.application,
+    `Critical values are the 95th percentile of the restricted system wild bootstrap, B = ${D.settings.B}. ` +
+    `Verdicts are bootstrap decisions, not comparisons with a tabulated bound. ` +
+    `"full" conditions on all seven controls; "reduced" drops money and the oil price.`,
+    verdictClass);
+
+  // diagnostic
+  const dg = D.diagnostic;
+  $('diagtable').innerHTML = table(
+    [{key:'controls',label:'control set'},{key:'m_Z projection',label:'m_Z projection'},
+     {key:'n_controls',label:'controls'},{key:'F',label:'F'},{key:'boot_cv95',label:'cv .95'},
+     {key:'boot_p',label:'p'},{key:'verdict',label:'verdict'},{key:'theta',label:'θ'},{key:'theta_se',label:'se(θ)'}],
+    dg.table, `Dropped from the reduced set: ${dg.dropped.join(', ')}. ` +
+    `Δ<sub>m</sub> = ${dg.delta_m}, Δ<sub>W</sub> = ${dg.delta_W}, θ spread = ${dg.theta_spread}.`,
+    verdictClass);
+  $('diagverdict').innerHTML =
+    `<div class="callout ${dg.delta_W > 0.1 ? 'warn' : 'good'}"><p><strong>Reading:</strong> ${esc(dg.verdict)}</p></div>`;
+
+  // penalty sweep
+  $('sweeptable').innerHTML = table(
+    [{key:'m_Z projection',label:'projection'},{key:'penalty',label:'penalty'},
+     {key:'n_selected_Z',label:'level controls kept'},{key:'F',label:'F'},
+     {key:'alpha',label:'α'},{key:'theta',label:'θ'},{key:'theta_se',label:'se(θ)'}],
+    D.penalty_sweep,
+    'Three estimators against three penalty rules (λ<sub>min</sub>, geometric midpoint, λ<sub>1se</sub>). ' +
+    (D.theta_sign_flips ? '<strong>θ changes sign across this grid</strong> — the conditioning choice, not the data, is driving it.' : ''));
+
+  // monte carlo
+  const mcCols = Object.keys(D.montecarlo[0] || {}).map(k => ({key:k, label:k}));
+  $('mctable').innerHTML = table(mcCols, D.montecarlo,
+    `R = ${D.settings.R} replications, nominal 5%. "rej @ 5.73" is the rejection rate of a true ` +
+    `null against the borrowed classical bound; "@ boot" against the bootstrap critical value.`);
+
+  const ulCols = Object.keys(D.ultra[0] || {}).map(k => ({key:k, label:k}));
+  $('ultratable').innerHTML = table(ulCols, D.ultra,
+    'T = 100, d = 150, mixed I(0)/I(1) nuisance. Implementability, not a size comparison.');
+
+  $('genstamp').textContent = `results regenerated in ${D.settings.elapsed_sec}s · seed ${D.settings.seed}`;
+}).catch(e => {
+  document.querySelectorAll('.loading:not(.loading-ex)').forEach(el => {
+    el.textContent = 'Could not load results. Run: python docs/build_site_assets.py';
+  });
+  console.error(e);
+});
+
+/* ---------- the worked example, rendered from a real run ---------- */
+
+/* The script prints each table as markdown, and the page then renders the same
+   table natively below. Fold the markdown away so it is not shown twice; the
+   untouched transcript is in example/_manifest.json. */
+function foldTables(out) {
+  const lines = out.split('\n');
+  const keep = [];
+  let inTable = false;
+  for (const ln of lines) {
+    if (ln.trimStart().startsWith('|')) { inTable = true; continue; }
+    if (inTable) { keep.push('    [table rendered below]'); inTable = false; }
+    keep.push(ln);
+  }
+  if (inTable) keep.push('    [table rendered below]');
+  return keep.join('\n');
+}
+
+fetch('example/_manifest.json').then(r => r.json()).then(M => {
+  const s = M.settings;
+  $('runmeta').innerHTML =
+    `<div class="runmeta">
+       <span class="tag"><b>${esc(M.script)}</b></span>
+       <span class="tag">v<b>${esc(M.version)}</b></span>
+       <span class="tag">B = <b>${s.B}</b></span>
+       <span class="tag">R = <b>${s.montecarlo ? s.R : '—'}</b></span>
+       <span class="tag">lags <b>${s.lags}</b>, K = <b>${s.n_blocks}</b>, h = <b>${s.buffer}</b></span>
+       <span class="tag">seed <b>${s.seed}</b></span>
+       <span class="tag"><b>${M.elapsed_sec}s</b> end to end</span>
+       <span class="tag">run ${esc(M.generated)}</span>
+     </div>`;
+
+  let h = '';
+  M.steps.forEach(st => {
+    h += `<div class="step" data-n="${st.n}"><h3>${esc(st.title)}</h3>`;
+    if (st.blurb) h += `<p class="blurb">${esc(st.blurb)}</p>`;
+    h += `<details class="code"><summary>the code that ran</summary>` +
+         `<pre><code>${esc(st.code)}</code></pre></details>`;
+    if (st.output) h += `<pre class="term"><code>${esc(foldTables(st.output))}</code></pre>`;
+
+    st.tables.forEach(t => {
+      const cols = t.columns.map(c => ({key: c, label: c}));
+      const base = esc(t.file.replace(/\.csv$/, ''));
+      const links = ['csv', 'tex', 'md']
+        .map(x => `<a href="example/${base}.${x}">${x}</a>`).join(' · ');
+      const cap = esc(t.caption) + (t.notes ? ` <em>${esc(t.notes)}</em>` : '') +
+                  ` <span class="muted">· ${base} · ${links}</span>`;
+      h += table(cols, t.rows, cap, verdictClass);
+    });
+
+    if (st.figures.length) {
+      h += st.figures.length > 1 ? '<div class="figgrid">' : '';
+      st.figures.forEach(f => {
+        h += `<figure><a href="example/${esc(f.file)}">` +
+             `<img loading="lazy" src="example/${esc(f.file)}" alt="${esc(f.caption)}"></a>` +
+             `<figcaption>${esc(f.caption)} ` +
+             `<span class="muted">· ${esc(f.file)}</span></figcaption></figure>`;
+      });
+      h += st.figures.length > 1 ? '</div>' : '';
+    }
+
+    h += `<p class="secs">step ${st.n} · ${st.seconds}s</p></div>`;
+  });
+  $('walkthrough').innerHTML = h;
+}).catch(e => {
+  document.querySelectorAll('.loading-ex').forEach(el => {
+    el.textContent = 'Could not load the worked example. Run: ' +
+      'python examples/04_full_analysis.py --outdir docs/example --style sunny';
+  });
+  console.error(e);
+});
+</script>
+</body>
+</html>

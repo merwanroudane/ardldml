@@ -142,7 +142,11 @@ _LAZY = {
         "result_table", "regime_table", "montecarlo_table", "diagnostic_table",
         "critical_value_table", "to_latex", "to_markdown", "stars", "bounds_stars",
     ),
-    "style": ("use_journal_style", "PALETTE", "COLORS"),
+    "style": (
+        "use_journal_style", "use_sunny_style", "apply_active_style",
+        "active_style", "PALETTE", "COLORS",
+        "SUNNY_PALETTE", "SUNNY_COLORS", "SUNNY_BG",
+    ),
 }
 
 _LOOKUP = {name: mod for mod, names in _LAZY.items() for name in names}

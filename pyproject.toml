@@ -70,6 +70,7 @@ all = [
 ]
 
 [project.urls]
+Website = "https://merwanroudane.github.io/ardldml/"
 "Step-by-step guide" = "https://github.com/merwanroudane/ardldml/blob/main/docs/STEP_BY_STEP_GUIDE.md"
 Documentation = "https://github.com/merwanroudane/ardldml#readme"
 Examples = "https://github.com/merwanroudane/ardldml/tree/main/examples"

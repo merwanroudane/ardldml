@@ -385,6 +385,27 @@ def test_plots_and_tables_run(system):
         assert token in tex
 
 
+def test_sunny_style_survives_a_plot_call_and_journal_undoes_it():
+    """A plot must re-assert the active style, not revert to the journal one."""
+    matplotlib = pytest.importorskip("matplotlib")
+    matplotlib.use("Agg")
+    try:
+        ad.use_sunny_style(transparent=True)
+        ad.plot_bracket(k=6, k_tilde=3)
+        assert ad.active_style()["name"] == "sunny"
+        assert ad.COLORS["bootstrap"] == ad.SUNNY_COLORS["bootstrap"]
+        assert matplotlib.rcParams["savefig.transparent"] is True
+
+        ad.use_journal_style()
+        ad.plot_bracket(k=6, k_tilde=3)
+        assert ad.active_style()["name"] == "journal"
+        assert ad.COLORS["bootstrap"] == ad.PALETTE[0]
+        assert matplotlib.rcParams["savefig.transparent"] is False
+        assert matplotlib.rcParams["savefig.facecolor"] == "white"
+    finally:
+        ad.use_journal_style()
+
+
 def test_plot_null_requires_bootstrap(system):
     pytest.importorskip("matplotlib")
     y, d, W, integ = system

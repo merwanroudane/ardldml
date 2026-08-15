@@ -1,9 +1,10 @@
 """
 Publication-quality figures.
 
-Every function returns a :class:`matplotlib.figure.Figure`, applies
-:func:`ardldml.style.use_journal_style` unless ``style=False``, and accepts an
-``ax`` so panels can be composed.
+Every function returns a :class:`matplotlib.figure.Figure`, applies the active
+style (:func:`ardldml.style.apply_active_style`, journal unless you switched to
+the sunny one) unless ``style=False``, and accepts an ``ax`` so panels can be
+composed.
 
 The set mirrors the figures the paper actually uses:
 
@@ -26,7 +27,7 @@ from typing import Dict, Optional, Sequence
 import numpy as np
 import pandas as pd
 
-from .style import COLORS, lighten, use_journal_style
+from .style import COLORS, apply_active_style, lighten
 
 __all__ = [
     "plot_bracket",
@@ -81,7 +82,7 @@ def plot_bracket(
     sits*, not the precise shape of the path.
     """
     if style:
-        use_journal_style()
+        apply_active_style()
     fig, ax = _fig(ax, figsize)
 
     xs = np.arange(0, k + 1)
@@ -135,7 +136,7 @@ def plot_bootstrap_null(
     if result.boot is None:
         raise ValueError("call .bootstrap() before plotting the null distribution")
     if style:
-        use_journal_style()
+        apply_active_style()
     fig, ax = _fig(ax, figsize)
 
     draws = result.boot["draws"]
@@ -178,7 +179,7 @@ def plot_size_comparison(
     :func:`~ardldml.simulate.run_design` stacked across designs.
     """
     if style:
-        use_journal_style()
+        apply_active_style()
     fig, ax = _fig(ax, figsize)
 
     if borrowed_col is None:
@@ -224,7 +225,7 @@ def plot_diagnostic(
     bootstrap p-values.
     """
     if style:
-        use_journal_style()
+        apply_active_style()
     fig, ax = _fig(ax, figsize)
 
     palette = [COLORS["full"], COLORS["reduced"], COLORS["borrowed"], COLORS["null"]]
@@ -255,7 +256,7 @@ def plot_block_structure(
     evaluation block are observations no model ever trains on for that fold.
     """
     if style:
-        use_journal_style()
+        apply_active_style()
     fig, ax = _fig(ax, figsize)
 
     n, K = folds.n, folds.n_blocks
@@ -310,7 +311,7 @@ def plot_series(
     import matplotlib.pyplot as plt
 
     if style:
-        use_journal_style()
+        apply_active_style()
     cols = list(cols or df.columns)
     nrows = int(np.ceil(len(cols) / ncols))
     figsize = figsize or (2.5 * ncols, 1.9 * nrows)
@@ -339,7 +340,7 @@ def plot_regimes(
 ):
     """A single series with regime windows shaded, for the pass-through data."""
     if style:
-        use_journal_style()
+        apply_active_style()
     fig, ax = _fig(ax, figsize)
     ax.plot(df.index, df[col], color=COLORS["observed"], lw=1.3)
     for i, (label, (a, b)) in enumerate(regimes.items()):
