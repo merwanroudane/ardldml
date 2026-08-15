@@ -1,0 +1,108 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ardldml"
+version = "0.1.0"
+description = "DML-Bounds: ARDL bounds testing for cointegration with many persistent controls, via orthogonalisation and a restricted system wild bootstrap"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Merwan Roudane", email = "merwanroudane920@gmail.com" },
+]
+maintainers = [
+    { name = "Merwan Roudane", email = "merwanroudane920@gmail.com" },
+]
+keywords = [
+    "ardl",
+    "bounds test",
+    "cointegration",
+    "error correction model",
+    "double machine learning",
+    "orthogonalization",
+    "high-dimensional",
+    "lasso",
+    "wild bootstrap",
+    "time series",
+    "econometrics",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Typing :: Typed",
+]
+dependencies = [
+    "numpy>=1.22",
+    "pandas>=1.5",
+    "scipy>=1.9",
+    "scikit-learn>=1.1",
+    "statsmodels>=0.13",
+    "matplotlib>=3.5",
+    "joblib>=1.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "build>=1.0",
+    "twine>=4.0",
+    "ruff>=0.4",
+]
+docs = [
+    "tabulate>=0.9",
+]
+all = [
+    "ardldml[dev,docs]",
+]
+
+[project.urls]
+"Step-by-step guide" = "https://github.com/merwanroudane/ardldml/blob/main/docs/STEP_BY_STEP_GUIDE.md"
+Documentation = "https://github.com/merwanroudane/ardldml#readme"
+Examples = "https://github.com/merwanroudane/ardldml/tree/main/examples"
+Homepage = "https://github.com/merwanroudane/ardldml"
+Repository = "https://github.com/merwanroudane/ardldml"
+Changelog = "https://github.com/merwanroudane/ardldml/blob/main/CHANGELOG.md"
+Issues = "https://github.com/merwanroudane/ardldml/issues"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"ardldml.data" = ["*.csv", "*.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+    "slow: full Monte Carlo grids and end-to-end replication of the empirical application",
+]
+filterwarnings = [
+    "ignore::UserWarning",
+    "ignore::FutureWarning",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501", "E731"]

@@ -1,0 +1,81 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "ardldml: ARDL bounds testing with many persistent controls"
+abstract: >-
+  A Python implementation of DML-Bounds, a test for a long-run (cointegrating)
+  relationship when the conditioning set is high-dimensional and may itself
+  contain stochastic trends. Combines a balanced, cross-fitted orthogonalisation
+  of the lagged levels with a restricted system wild bootstrap. Critical values
+  are generated rather than tabulated.
+type: software
+version: "0.1.0"
+date-released: "2026-08-15"
+license: MIT
+repository-code: "https://github.com/merwanroudane/ardldml"
+url: "https://github.com/merwanroudane/ardldml"
+keywords:
+  - ARDL
+  - bounds test
+  - cointegration
+  - error correction model
+  - double machine learning
+  - high-dimensional econometrics
+  - wild bootstrap
+  - time series
+authors:
+  - family-names: Roudane
+    given-names: Merwan
+    email: merwanroudane920@gmail.com
+references:
+  - type: article
+    title: "Bounds testing approaches to the analysis of level relationships"
+    authors:
+      - family-names: Pesaran
+        given-names: "M. Hashem"
+      - family-names: Shin
+        given-names: Yongcheol
+      - family-names: Smith
+        given-names: "Richard J."
+    journal: "Journal of Applied Econometrics"
+    volume: 16
+    issue: 3
+    start: 289
+    end: 326
+    year: 2001
+    doi: "10.1002/jae.616"
+  - type: article
+    title: "Double/debiased machine learning for treatment and structural parameters"
+    authors:
+      - family-names: Chernozhukov
+        given-names: Victor
+      - family-names: Chetverikov
+        given-names: Denis
+      - family-names: Demirer
+        given-names: Mert
+      - family-names: Duflo
+        given-names: Esther
+      - family-names: Hansen
+        given-names: Christian
+      - family-names: Newey
+        given-names: Whitney
+      - family-names: Robins
+        given-names: James
+    journal: "The Econometrics Journal"
+    volume: 21
+    issue: 1
+    year: 2018
+    doi: "10.1111/ectj.12097"
+  - type: article
+    title: "FRED-MD: A monthly database for macroeconomic research"
+    authors:
+      - family-names: McCracken
+        given-names: "Michael W."
+      - family-names: Ng
+        given-names: Serena
+    journal: "Journal of Business & Economic Statistics"
+    volume: 34
+    issue: 4
+    start: 574
+    end: 589
+    year: 2016
+    doi: "10.1080/07350015.2015.1086655"
