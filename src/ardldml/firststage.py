@@ -289,9 +289,11 @@ def adaptive_post_lasso(
     max_iter: int = 5000,
     tol: float = 1e-4,
     min_dof: int = 1,
+    adaptive_mask: Optional[np.ndarray] = None,
 ) -> Dict[str, object]:
     """
-    Adaptive LASSO selection followed by an unpenalised refit.
+    LASSO selection followed by an unpenalised refit, with optional adaptive
+    weights on a designated block of columns.
 
     Parameters
     ----------
@@ -303,9 +305,15 @@ def adaptive_post_lasso(
         Penalty. If ``None``, uses :func:`plugin_penalty` with an initial
         :math:`\\hat\\sigma` from the target's standard deviation, refined once.
     adaptive : bool
-        If ``True``, weight the penalty on coefficient ``j`` by the reciprocal
-        of the absolute univariate slope of ``y`` on column ``j``, which is the
-        "marginal slope weights" rule of the paper. If ``False``, plain LASSO.
+        Enable adaptive weighting at all. If ``False``, plain LASSO.
+    adaptive_mask : ndarray of bool, shape (d,), optional
+        Which columns receive adaptive weights. Section 4.1 of the paper
+        applies them **to the integrated block only** -- "vanilla :math:`\\ell_1`
+        over-selects integrated regressors and thereby induces spurious trend
+        absorption, whereas adaptive penalization curbs it". Stationary columns
+        are left under the plain penalty. If ``None`` and ``adaptive`` is
+        ``True``, every column is weighted, which is the looser reading of
+        Appendix B.
     c : float
         Constant in the plug-in penalty.
     min_dof : int
@@ -322,7 +330,10 @@ def adaptive_post_lasso(
     Notes
     -----
     Selection is done on standardised columns so the penalty is scale-free;
-    coefficients are mapped back to the original scale before the refit.
+    coefficients are mapped back to the original scale before the refit. The
+    adaptive weight on column ``j`` is the absolute univariate ("marginal")
+    slope of ``y`` on that column, applied by rescaling the column -- which is
+    equivalent to penalising :math:`|\\beta_j|` by its reciprocal.
     """
     from sklearn.linear_model import Lasso
 
@@ -335,7 +346,15 @@ def adaptive_post_lasso(
         denom = (Xs**2).sum(axis=0)
         denom = np.where(denom < 1e-12, 1.0, denom)
         marg = np.abs(Xs.T @ yc) / denom
-        w = np.maximum(marg, 1e-8)  # weight = 1/penalty-weight, so multiply columns
+        w = np.maximum(marg, 1e-8)
+        if adaptive_mask is not None:
+            mask = np.asarray(adaptive_mask, dtype=bool)
+            if mask.shape[0] != d:
+                raise ValueError(
+                    f"adaptive_mask has length {mask.shape[0]} but X has {d} columns"
+                )
+            # Plain penalty off the integrated block: weight 1.
+            w = np.where(mask, w, 1.0)
         Xw = Xs * w
     else:
         w = np.ones(d)
@@ -440,6 +459,7 @@ def cross_fit_projection(
     adaptive: bool = True,
     c: float = 1.1,
     penalised: bool = True,
+    adaptive_mask: Optional[np.ndarray] = None,
 ) -> Dict[str, object]:
     """
     Out-of-fold predictions of ``y`` on ``X`` under an h-block partition.
@@ -454,6 +474,8 @@ def cross_fit_projection(
         If ``False``, the projection is unpenalised OLS. This is the
         low-dimensional corner used by Design A of the paper's Monte Carlo, and
         the ``ols`` arm of the trend-absorption diagnostic.
+    adaptive_mask : ndarray of bool, optional
+        Columns receiving adaptive weights; see :func:`adaptive_post_lasso`.
 
     Returns
     -------
@@ -468,7 +490,10 @@ def cross_fit_projection(
 
     for train, ev in folds:
         if penalised:
-            fit = adaptive_post_lasso(X[train], y[train], lam=lam, adaptive=adaptive, c=c)
+            fit = adaptive_post_lasso(
+                X[train], y[train], lam=lam, adaptive=adaptive, c=c,
+                adaptive_mask=adaptive_mask,
+            )
             coef, intercept = fit["coef"], fit["intercept"]
             support_union |= fit["support"]
             lams.append(fit["lam"])

@@ -91,6 +91,13 @@ class DMLBoundsSpec:
     adaptive : bool
         Adaptive weights on the :math:`m_Z` projection. ``True`` is the paper's
         default; ``False`` gives the plain-LASSO arm of the diagnostic.
+    adaptive_integrated_only : bool
+        Restrict the adaptive weights to the **integrated block**, which is
+        what Section 4.1 specifies: the weighting exists because "vanilla
+        :math:`\\ell_1` over-selects integrated regressors and thereby induces
+        spurious trend absorption". Stationary controls stay under the plain
+        penalty. Set ``False`` to weight every column, the looser reading of
+        Appendix B.
     penalised : bool
         If ``False``, both projections are unpenalised OLS -- the
         low-dimensional corner (Design A) and the ``ols`` arm of the diagnostic.
@@ -113,6 +120,7 @@ class DMLBoundsSpec:
     c: float = 1.1
     integrated: Optional[Sequence[str]] = None
     include_constant: bool = False
+    adaptive_integrated_only: bool = True
 
 
 def _wald_f(
@@ -227,7 +235,18 @@ def compute_statistic(
         Xs_use, dy, folds, lam=lam_dy, adaptive=False, c=spec.c, penalised=spec.penalised
     )
 
-    # Level projection of each component of Z on control levels: adaptive.
+    # Level projection of each component of Z on control levels (eq 5 and 6).
+    #
+    # Two details follow Section 4.1 exactly. First, the adaptive weights apply
+    # to the *integrated block only*: "vanilla l1 over-selects integrated
+    # regressors and thereby induces spurious trend absorption, whereas
+    # adaptive penalization curbs it". Stationary controls stay under the plain
+    # penalty. Second, the penalty here is always the plug-in value -- equation
+    # (11) defines the TSCV penalty for the dY equation alone, and Appendix B
+    # gives the m_Z projection the plug-in rule c*sqrt(log d / n)*sigma.
+    integrated_mask = np.array(
+        [c in set(design.integrated) for c in design.Wlev.columns], dtype=bool
+    )
     z_res = np.empty_like(Zl)
     z_support = np.zeros(Wl.shape[1], dtype=bool)
     estimable = fit_dy["estimable"]
@@ -236,10 +255,11 @@ def compute_statistic(
             Wl,
             Zl[:, j],
             folds,
-            lam=None if reselect_levels else lam_dy,
+            lam=None,
             adaptive=spec.adaptive,
             c=spec.c,
             penalised=spec.penalised,
+            adaptive_mask=integrated_mask if spec.adaptive_integrated_only else None,
         )
         z_res[:, j] = fit_z["resid"]
         z_support |= fit_z["support_union"]

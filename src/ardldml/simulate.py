@@ -269,6 +269,11 @@ def run_design(
     pandas.DataFrame
         One row per ``rho``, with ``rej_borrowed`` and ``rej_boot``.
     """
+    # Appendix B: "design A uses the low-dimensional OLS projection".
+    kwargs = dict(spec_kwargs)
+    if design == "A":
+        kwargs.setdefault("penalised", False)
+
     rows = []
     for rho, label in ((rho_null, "size"), (rho_alt, "power")):
         rej_b, rej_boot, n_ok = 0, 0, 0
@@ -277,7 +282,7 @@ def run_design(
             y, dser, W, integ = simulate_design(design, T=T, rho=rho, delta=delta, d=d, seed=s)
             try:
                 res = (
-                    DMLBounds(y, dser, W, integrated=integ, **spec_kwargs)
+                    DMLBounds(y, dser, W, integrated=integ, **kwargs)
                     .fit()
                     .bootstrap(B=B, level=level, seed=s)
                 )
