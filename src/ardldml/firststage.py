@@ -58,6 +58,8 @@ estimable rather than silently returning a number.
 
 from __future__ import annotations
 
+import warnings
+
 from dataclasses import dataclass
 from typing import Dict, Optional, Sequence, Tuple
 
@@ -246,6 +248,25 @@ def build_balanced_design(
 
     frame = pd.concat([dY, X, Z, Wlev], axis=1).dropna()
     idx = frame.index
+
+    # Section 5.1 keeps the integrated nuisance block fixed-dimensional: "the
+    # growing-d1 case is a sparse-cointegration selection problem and is left
+    # for future work". Selecting among many integrated regressors risks
+    # picking up irrelevant random walks through spurious regression, which
+    # falsely absorbs stochastic trends. Warn rather than refuse, since the
+    # procedure still runs -- it is the theory that stops covering it.
+    if len(i1) > max(10, 0.1 * len(idx)):
+        warnings.warn(
+            f"{len(i1)} controls are treated as I(1) on a sample of {len(idx)}. "
+            "The paper's validity theory holds the integrated block "
+            "fixed-dimensional (Section 5.1); selection over a growing "
+            "integrated block is an open problem and can spuriously absorb "
+            "trends. Consider moving marginal cases to the stationary block or "
+            "reducing the control set, and read the trend-absorption diagnostic.",
+            UserWarning,
+            stacklevel=2,
+        )
+
     return BalancedDesign(
         dY=dY.loc[idx],
         X=X.loc[idx],
@@ -395,6 +416,11 @@ def adaptive_post_lasso(
     }
 
 
+#: The three penalty rules of Section 7.5, keyed by the label the paper's
+#: robustness tables use for them.
+PENALTY_RULES = {"low": "min", "medium": "mid", "high": "1se"}
+
+
 def tscv_penalty(
     X: np.ndarray,
     y: np.ndarray,
@@ -402,14 +428,15 @@ def tscv_penalty(
     min_train: Optional[int] = None,
     adaptive: bool = False,
     n_grid: int = 20,
-) -> float:
+    rule: str = "min",
+    return_profile: bool = False,
+):
     """
     Rolling-origin time-series cross-validation for the penalty.
 
-    Implements Section 4.4 of the paper: for origins
-    :math:`t = T_0, \\ldots, T-1` the first stage is fitted on
-    :math:`\\{1, \\ldots, t\\}` and evaluated one step ahead, and
-    :math:`\\lambda` minimises the average out-of-sample squared error
+    Implements Section 4.4: for origins :math:`t = T_0, \\ldots, T-1` the first
+    stage is fitted on :math:`\\{1, \\ldots, t\\}` and evaluated one step ahead,
+    and :math:`\\lambda` minimises the average out-of-sample squared error
 
     .. math::
         \\lambda_{opt} = \\arg\\min_\\lambda \\frac{1}{T - T_0}
@@ -425,27 +452,65 @@ def tscv_penalty(
         the plug-in value.
     min_train : int, optional
         :math:`T_0`. Defaults to ``max(20, n // 3)``.
+    rule : {"min", "1se", "mid", "low", "medium", "high"}
+        Which point of the validation profile to take. Section 7.5 traces
+        robustness across three choices, and the paper's tables label them
+        Low, Medium and High:
+
+        * ``"min"`` (Low) -- :math:`\\lambda_{\\min}`, the profile minimum;
+        * ``"1se"`` (High) -- the largest penalty whose error is within one
+          standard error of the minimum, the usual conservative choice;
+        * ``"mid"`` (Medium) -- the geometric midpoint of the two.
+
+        The verdict can depend on this. The paper's own Table 14 has a cell
+        rejecting at Medium and not at High, which is why
+        :func:`~ardldml.diagnostics.penalty_sensitivity` sweeps all three
+        rather than reporting one.
+    return_profile : bool
+        Also return the grid and its mean-squared-error profile, which is what
+        you need to plot the selection.
+
+    Returns
+    -------
+    float or (float, dict)
     """
+    rule = PENALTY_RULES.get(rule, rule)
+    if rule not in ("min", "1se", "mid"):
+        raise ValueError(f"rule must be one of min/1se/mid (or low/medium/high); got {rule!r}")
+
     n, d = X.shape
     if min_train is None:
         min_train = max(20, n // 3)
     if min_train >= n - 1:
-        return plugin_penalty(n, d, float(np.std(y, ddof=1)) or 1.0)
+        lam = plugin_penalty(n, d, float(np.std(y, ddof=1)) or 1.0)
+        return (lam, {"grid": np.array([lam]), "mse": np.array([np.nan])}) if return_profile else lam
 
     if grid is None:
         base = plugin_penalty(n, d, float(np.std(y, ddof=1)) or 1.0)
         grid = np.geomspace(base / 10.0, base * 10.0, n_grid)
+    grid = np.asarray(grid, dtype=float)
 
-    errors = np.zeros(len(grid))
-    counts = np.zeros(len(grid))
+    n_origin = n - min_train
+    sq = np.zeros((len(grid), n_origin))
     for gi, lam in enumerate(grid):
-        for t in range(min_train, n):
+        for j, t in enumerate(range(min_train, n)):
             fit = adaptive_post_lasso(X[:t], y[:t], lam=float(lam), adaptive=adaptive)
             pred = float(X[t] @ fit["coef"] + fit["intercept"])
-            errors[gi] += (y[t] - pred) ** 2
-            counts[gi] += 1
-    mse = errors / np.maximum(counts, 1)
-    return float(np.asarray(grid)[int(np.argmin(mse))])
+            sq[gi, j] = (y[t] - pred) ** 2
+
+    mse = sq.mean(axis=1)
+    i_min = int(np.argmin(mse))
+    lam_min = float(grid[i_min])
+
+    # One standard error of the mean cross-validated error at the minimum.
+    se = float(sq[i_min].std(ddof=1) / np.sqrt(n_origin)) if n_origin > 1 else 0.0
+    within = np.flatnonzero(mse <= mse[i_min] + se)
+    lam_1se = float(grid[within.max()]) if within.size else lam_min
+
+    lam = {"min": lam_min, "1se": lam_1se, "mid": float(np.sqrt(lam_min * lam_1se))}[rule]
+    if return_profile:
+        return lam, {"grid": grid, "mse": mse, "lam_min": lam_min, "lam_1se": lam_1se}
+    return lam
 
 
 # ---------------------------------------------------------------------------

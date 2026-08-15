@@ -419,3 +419,150 @@ def test_appb_default_seed_documented():
 
     txt = pathlib.Path("examples/01_quickstart.py").read_text(encoding="utf-8")
     assert "20260625" in txt
+
+
+# ---------------------------------------------------------------------------
+# Table 3 -- the nuisance dimension scales with the sample size
+# ---------------------------------------------------------------------------
+def test_table3_default_dimensions():
+    """
+    Table 3 reports d = 5 for design A at both sample sizes, d = 108 at T = 120
+    and d = 180 at T = 200 for B, C and D, and d = T for design E.
+    """
+    from ardldml.simulate import default_d
+
+    assert [default_d(g, 120) for g in "ABCDE"] == [5, 108, 108, 108, 120]
+    assert [default_d(g, 200) for g in "ABCDE"] == [5, 180, 180, 180, 200]
+
+
+def test_design_e_is_d_equals_T():
+    """Table 2, design E: the "d = T" stress case."""
+    for T in (80, 120, 200):
+        _, _, W, _ = ad.simulate_design("E", T=T, seed=SEED)
+        assert W.shape[1] == T
+
+
+# ---------------------------------------------------------------------------
+# Section 7.5 -- the three penalty rules and three estimators
+# ---------------------------------------------------------------------------
+def test_s75_three_penalty_rules_exist():
+    """
+    Section 7.5 compares "three penalty choices (lambda_min, the geometric
+    midpoint, and lambda_1se)", tabulated as Low, Medium and High.
+    """
+    from ardldml import PENALTY_RULES
+
+    assert PENALTY_RULES == {"low": "min", "medium": "mid", "high": "1se"}
+
+
+def test_s75_penalty_rules_are_ordered():
+    """lambda_min <= geometric midpoint <= lambda_1se, by construction."""
+    from ardldml.firststage import tscv_penalty
+
+    rng = np.random.default_rng(0)
+    n, d = 90, 6
+    X = rng.standard_normal((n, d))
+    y = X[:, 0] * 0.8 + rng.standard_normal(n)
+
+    lo = tscv_penalty(X, y, rule="low", n_grid=8)
+    mid = tscv_penalty(X, y, rule="medium", n_grid=8)
+    hi = tscv_penalty(X, y, rule="high", n_grid=8)
+    assert lo <= mid <= hi
+
+
+def test_s75_bad_rule_raises():
+    from ardldml.firststage import tscv_penalty
+
+    rng = np.random.default_rng(0)
+    with pytest.raises(ValueError):
+        tscv_penalty(rng.standard_normal((60, 3)), rng.standard_normal(60), rule="nope")
+
+
+def test_s75_alternatives():
+    """rho in {0.85, 0.50, 0.20}: weak, moderate and strong cointegration."""
+    from ardldml import RHO_ALTERNATIVES
+
+    assert RHO_ALTERNATIVES == {"weak": 0.85, "moderate": 0.50, "strong": 0.20}
+
+
+def test_s75_three_estimators_in_sensitivity(system):
+    """
+    The sweep must cover the unpenalised ECM benchmark, plain l1 and the
+    adaptive procedure.
+    """
+    y, d, W, integ = system
+    tab = ad.penalty_sensitivity(
+        y, d, W, lags_grid=(2,), integrated=integ, n_blocks=4, buffer=2
+    )
+    assert set(tab["m_Z projection"]) == {"adaptive", "plain", "ols"}
+    assert set(tab.loc[tab["m_Z projection"] == "adaptive", "penalty"]) == {
+        "low", "medium", "high"
+    }
+    # The unpenalised arm has no penalty, so it appears exactly once.
+    assert (tab["m_Z projection"] == "ols").sum() == 1
+
+
+# ---------------------------------------------------------------------------
+# Section 7.7 -- implementability
+# ---------------------------------------------------------------------------
+def test_s77_unpenalised_not_implementable_when_d_exceeds_T():
+    """
+    Section 7.7: at T = 100, d = 150 "the empirical Gram matrix of the
+    unpenalized benchmark is singular ... and the classical conditional ECM
+    cannot be implemented, while the regularized DML-Bounds procedure remains
+    estimable."
+    """
+    tab = ad.run_ultra_check(T=100, d=150, R=4, seed=SEED)
+    ecm = tab.set_index("method").loc["Unpenalised ECM"]
+    dml = tab.set_index("method").loc["DML-Bounds (h-block)"]
+    assert ecm["implementable across draws"] == "0.0%"
+    assert ecm["statistic (median, IQR)"] == "not defined"
+    assert float(dml["implementable across draws"].rstrip("%")) > 50.0
+
+
+# ---------------------------------------------------------------------------
+# Section 5.1 -- the integrated block is fixed-dimensional
+# ---------------------------------------------------------------------------
+def test_s51_warns_when_integrated_block_grows():
+    """
+    Section 5.1 keeps the integrated nuisance block fixed-dimensional and
+    leaves "the growing-d1 case ... for future work". The package should say so
+    rather than silently running outside the theory.
+    """
+    from conftest import make_system as mk
+
+    y, d, W, integ = mk(T=60, d_ctl=40, seed=2)
+    with pytest.warns(UserWarning, match="fixed-dimensional"):
+        build_balanced_design(y, d, W, lags=2, integrated=integ)
+
+
+def test_s51_no_warning_for_a_small_integrated_block():
+    from conftest import make_system as mk
+    import warnings as _w
+
+    y, d, W, integ = mk(T=200, d_ctl=8, seed=2)
+    with _w.catch_warnings():
+        _w.simplefilter("error", UserWarning)
+        build_balanced_design(y, d, W, lags=2, integrated=integ)
+
+
+# ---------------------------------------------------------------------------
+# Section 8 -- the application specification
+# ---------------------------------------------------------------------------
+def test_s8_application_specification():
+    """
+    Section 8: seven controls, the adaptive m_Z projection as default,
+    B = 999 and lag order p = 4.
+    """
+    from ardldml import CONTROLS
+    from ardldml.statistic import DMLBoundsSpec
+
+    assert len(CONTROLS) == 7
+    assert DMLBoundsSpec().adaptive is True
+    assert DMLBoundsSpec().lags == 4
+
+    import pathlib
+
+    txt = pathlib.Path("examples/02_passthrough.py").read_text(encoding="utf-8")
+    assert "B: int = 999" in txt
+    assert "lags=4" in txt

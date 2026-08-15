@@ -76,6 +76,7 @@ from .firststage import (
     build_balanced_design,
     classify_controls,
     cross_fit_projection,
+    PENALTY_RULES,
     plugin_penalty,
     tscv_penalty,
 )
@@ -113,6 +114,7 @@ __all__ = [
     "cross_fit_projection",
     "plugin_penalty",
     "tscv_penalty",
+    "PENALTY_RULES",
     # folds
     "hblock_folds",
     "BlockStructure",
@@ -129,7 +131,8 @@ _LAZY = {
     "diagnostics": ("trend_absorption", "TrendAbsorption", "penalty_sensitivity"),
     "simulate": (
         "simulate_design", "empirical_critical_value", "run_design",
-        "run_endogeneity_grid", "DESIGNS", "DesignSpec",
+        "run_endogeneity_grid", "run_ultra_check", "run_robustness_grid",
+        "DESIGNS", "DesignSpec", "default_d", "RHO_ALTERNATIVES",
     ),
     "plots": (
         "plot_bracket", "plot_bootstrap_null", "plot_size_comparison",

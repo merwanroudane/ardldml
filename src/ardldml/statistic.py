@@ -101,9 +101,21 @@ class DMLBoundsSpec:
     penalised : bool
         If ``False``, both projections are unpenalised OLS -- the
         low-dimensional corner (Design A) and the ``ols`` arm of the diagnostic.
-    penalty : {"plugin", "tscv"} or float
-        ``"plugin"`` uses :math:`c\\sqrt{\\log d/n}\\hat\\sigma`; ``"tscv"``
-        selects by rolling-origin cross-validation; a float fixes it.
+    penalty : str or float
+        How the :math:`\\Delta Y` penalty is chosen.
+
+        * ``"plugin"`` -- :math:`c\\sqrt{\\log d/n}\\hat\\sigma`, the Appendix B
+          rule and the default;
+        * ``"tscv"`` / ``"low"`` / ``"min"`` -- rolling-origin cross-validation
+          at the profile minimum (equation 11);
+        * ``"medium"`` / ``"mid"`` -- the geometric midpoint;
+        * ``"high"`` / ``"1se"`` -- the one-standard-error rule;
+        * a float fixes it directly.
+
+        The last three are the three penalty choices Section 7.5 traces
+        robustness across. The level projection always uses the plug-in rule
+        regardless, since equation (11) tunes the :math:`\\Delta Y` equation
+        only.
     c : float
         Constant in the plug-in penalty.
     integrated : sequence of str, optional
@@ -225,10 +237,12 @@ def compute_statistic(
         Xs_use = Xs
 
     lam_dy = None
-    if spec.penalised and spec.penalty == "tscv":
-        lam_dy = tscv_penalty(Xs_use, dy, adaptive=False)
-    elif isinstance(spec.penalty, (int, float)):
+    if isinstance(spec.penalty, (int, float)) and not isinstance(spec.penalty, bool):
         lam_dy = float(spec.penalty)
+    elif spec.penalised and spec.penalty in ("tscv", "min", "1se", "mid",
+                                             "low", "medium", "high"):
+        rule = "min" if spec.penalty == "tscv" else spec.penalty
+        lam_dy = tscv_penalty(Xs_use, dy, adaptive=False, rule=rule)
 
     # Stationary projection of dY: plain LASSO is appropriate here.
     fit_dy = cross_fit_projection(

@@ -254,9 +254,10 @@ def penalty_sensitivity(
     y: pd.Series,
     d: pd.Series,
     W: pd.DataFrame,
-    c_grid: Sequence[float] = (1.1, 0.75, 0.5, 0.25),
+    rules: Sequence[str] = ("low", "medium", "high"),
     lags_grid: Sequence[int] = (4,),
-    projections: Sequence[str] = ("adaptive", "ols"),
+    projections: Sequence[str] = ("adaptive", "plain", "ols"),
+    c_grid: Optional[Sequence[float]] = None,
     B: Optional[int] = None,
     seed: Optional[int] = None,
     **spec_kwargs,
@@ -283,13 +284,21 @@ def penalty_sensitivity(
 
     Parameters
     ----------
-    c_grid : sequence of float
-        Constants in the plug-in penalty. ``1.1`` is the paper's default; lower
-        values select more aggressively.
+    rules : sequence of str
+        The three penalty choices of Section 7.5, which the paper's robustness
+        tables label Low, Medium and High: ``"low"`` is the cross-validated
+        minimum, ``"medium"`` the geometric midpoint, ``"high"`` the
+        one-standard-error rule.
+    c_grid : sequence of float, optional
+        Alternative sweep over the plug-in constant instead of the named
+        rules. ``1.1`` is the Appendix B value; lower values select more
+        aggressively.
     lags_grid : sequence of int
         Short-run lag orders to try.
     projections : sequence of str
-        Any of ``"adaptive"``, ``"plain"``, ``"ols"``.
+        The three estimators Section 7.5 compares: ``"adaptive"``
+        (DML-Bounds), ``"plain"`` (vanilla :math:`\ell_1`) and ``"ols"``
+        (the unpenalised conditional ECM benchmark).
     B : int, optional
         Bootstrap draws per cell. If ``None``, no bootstrap is run and only the
         statistic and coefficients are reported, which is much faster.
@@ -299,10 +308,11 @@ def penalty_sensitivity(
     pandas.DataFrame
         One row per cell.
     """
+    settings = list(c_grid) if c_grid is not None else list(rules)
     rows = []
     for lags in lags_grid:
         for proj in projections:
-            for c in c_grid:
+            for setting in settings:
                 kw = dict(spec_kwargs)
                 kw["lags"] = lags
                 if proj == "ols":
@@ -310,7 +320,10 @@ def penalty_sensitivity(
                 else:
                     kw["penalised"] = True
                     kw["adaptive"] = proj == "adaptive"
-                    kw["c"] = c
+                    if c_grid is not None:
+                        kw["c"] = float(setting)
+                    else:
+                        kw["penalty"] = setting
                 try:
                     res = DMLBounds(y, d, W, **kw).fit()
                     if B:
@@ -319,7 +332,7 @@ def penalty_sensitivity(
                         {
                             "lags": lags,
                             "m_Z projection": proj,
-                            "c": None if proj == "ols" else c,
+                            "penalty": "-" if proj == "ols" else setting,
                             "n_selected_Z": int(res.first_stage.supports["Z"].sum()),
                             "F": res.stat,
                             "boot_cv95": res.critical_value,
@@ -331,7 +344,8 @@ def penalty_sensitivity(
                     )
                 except Exception as exc:  # pragma: no cover - degenerate cell
                     rows.append(
-                        {"lags": lags, "m_Z projection": proj, "c": c, "error": str(exc)[:60]}
+                        {"lags": lags, "m_Z projection": proj, "penalty": setting,
+                         "error": str(exc)[:60]}
                     )
                 if proj == "ols":
                     break  # the penalty is irrelevant without penalisation

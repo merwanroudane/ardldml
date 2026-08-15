@@ -221,8 +221,9 @@ power. It tells you where to look.
 | `n_blocks` | `int` | `5` | cross-fitting blocks `K` |
 | `buffer` | `int` | `0` | buffer `h`; set it to cover the memory of the process |
 | `adaptive` | `bool` | `True` | adaptive weights on the `m_Z` projection |
+| `adaptive_integrated_only` | `bool` | `True` | restrict those weights to the **integrated block**, per §4.1 |
 | `penalised` | `bool` | `True` | `False` gives unpenalised OLS projections (low-dimensional corner) |
-| `penalty` | `str`/`float` | `"plugin"` | `"plugin"`, `"tscv"`, or a fixed λ |
+| `penalty` | `str`/`float` | `"plugin"` | `"plugin"`, `"low"`/`"medium"`/`"high"`, or a fixed λ |
 | `c` | `float` | `1.1` | constant in `λ = c·√(log d/n)·σ̂` |
 | `integrated` | `list[str]` | `None` | controls to treat as `I(1)`; `None` triggers an ADF fallback |
 | `include_constant` | `bool` | `False` | add an intercept to stage 3; `False` is equation (10) as written |
@@ -344,6 +345,35 @@ run_endogeneity_grid(deltas=(0.0, 0.4, 0.8), T=200, R=100, B=199)
 At `δ = 0` the schemes coincide — the sanity check that joint regeneration
 introduces no distortion of its own.
 
+### Robustness under oracle critical values (§7.5–7.6)
+
+Fixes `d = 40` and traces size and power across sample sizes, penalties and
+estimators using *method-specific empirical* critical values instead of the
+bootstrap, which isolates the estimator from the bootstrap approximation:
+
+```python
+from ardldml import run_robustness_grid
+run_robustness_grid(T_grid=(100, 250), R=50, mixed=True)   # mixed I(0)/I(1)
+```
+
+Watch the `cv95` column. Under mixed integrated nuisance it climbs far above
+the borrowed 5.73 and keeps climbing with `T` — that is the inference problem
+made numerical. Size-adjusted power flatters the unpenalised benchmark only
+because it is recentred with a critical value nobody has in practice.
+
+### Implementability (§7.7)
+
+```python
+from ardldml import run_ultra_check
+run_ultra_check(T=100, d=150, R=40)
+#               method  implementable  statistic (median, IQR)
+#      Unpenalised ECM           0.0%              not defined
+# DML-Bounds (h-block)         100.0%              2.45 (2.99)
+```
+
+At `d > T` the unpenalised Gram matrix is singular in every draw, so no
+classical statistic exists at all.
+
 ## Figures and tables
 
 All figures apply a journal style (serif, no top/right spine, Wong
@@ -413,7 +443,13 @@ Stated plainly, because they affect how you should read a result.
 - **The theory keeps the integrated control block fixed-dimensional.** Growing
   it is a sparse-cointegration selection problem the paper explicitly leaves
   open. Adaptive weighting here is a stabilisation device, not a
-  selection-consistency theorem.
+  selection-consistency theorem. The package warns when you classify more than
+  `max(10, 0.1·n)` controls as `I(1)`.
+- **The penalty can change the verdict, and sometimes the sign of θ.** On the
+  bundled pass-through data the adaptive projection selects zero level controls
+  at `c = 1.1` — no residualisation at all, the `k̃ = k` corner — while looser
+  penalties absorb controls and flip θ. Run `penalty_sensitivity` and report
+  the grid, not a cell.
 - **Bootstrap validity with estimated first stages rests on a high-level
   condition.** The paper proves consistency under *oracle* projections; the
   step to the feasible procedure is an assumption, not a theorem.
@@ -428,7 +464,7 @@ Stated plainly, because they affect how you should read a result.
 
 **Inference** — `restricted_system_wild_bootstrap`, `rademacher`
 
-**Diagnostics** — `trend_absorption`, `TrendAbsorption`
+**Diagnostics** — `trend_absorption`, `TrendAbsorption`, `penalty_sensitivity`
 
 **Classical benchmark** — `classical_bounds_test`, `ClassicalBounds`,
 `conditional_ecm`, `restricted_null_model`
@@ -437,13 +473,15 @@ Stated plainly, because they affect how you should read a result.
 `statsmodels_offset`, `n_restrictions`
 
 **First stage** — `build_balanced_design`, `BalancedDesign`, `classify_controls`,
-`adaptive_post_lasso`, `cross_fit_projection`, `plugin_penalty`, `tscv_penalty`
+`adaptive_post_lasso`, `cross_fit_projection`, `plugin_penalty`, `tscv_penalty`,
+`PENALTY_RULES`
 
 **Cross-fitting** — `hblock_folds`, `BlockStructure`, `sample_use`,
 `sample_use_table`
 
 **Simulation** — `simulate_design`, `run_design`, `run_endogeneity_grid`,
-`empirical_critical_value`, `DESIGNS`
+`run_robustness_grid`, `run_ultra_check`, `empirical_critical_value`,
+`DESIGNS`, `default_d`, `RHO_ALTERNATIVES`
 
 **Data** — `load_passthrough`, `passthrough_regimes`, `CONTROLS`,
 `REDUCED_DROP`, `DEFAULT_INTEGRATED`
