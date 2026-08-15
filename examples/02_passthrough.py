@@ -32,6 +32,7 @@ from pathlib import Path
 warnings.filterwarnings("ignore")
 
 import matplotlib
+
 matplotlib.use("Agg")
 
 import pandas as pd

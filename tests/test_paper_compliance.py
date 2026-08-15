@@ -14,13 +14,12 @@ from __future__ import annotations
 import inspect
 
 import numpy as np
-import pandas as pd
 import pytest
+from conftest import make_system
 
 import ardldml as ad
 from ardldml import DMLBounds, build_balanced_design
 from ardldml.statistic import DMLBoundsSpec, _wald_f, compute_statistic
-from conftest import make_system
 
 SEED = 20260625
 
@@ -537,8 +536,9 @@ def test_s51_warns_when_integrated_block_grows():
 
 
 def test_s51_no_warning_for_a_small_integrated_block():
-    from conftest import make_system as mk
     import warnings as _w
+
+    from conftest import make_system as mk
 
     y, d, W, integ = mk(T=200, d_ctl=8, seed=2)
     with _w.catch_warnings():

@@ -137,9 +137,9 @@ cv = ad.simulate_pss_bounds(k=1, case=3, T=1000, nsim=20_000, seed=0)
 print(cv)
 #         I(0)   I(1)
 # level
-# 0.10   4.03   4.77
-# 0.05   4.93   5.74
-# 0.01   6.82   7.90
+# 0.10   4.03   4.76
+# 0.05   4.85   5.70
+# 0.01   6.78   7.88
 ```
 
 Compare with print:
@@ -160,10 +160,16 @@ except you generate them instead of looking them up:
 
 ```python
 ad.simulate_pss_bounds(k=1, case=3, T=108, nsim=20_000, seed=0)
+#         I(0)   I(1)
+# level
+# 0.10   4.06   4.87
+# 0.05   4.99   5.88
+# 0.01   7.09   8.17
 ```
 
-They will be noticeably **larger** than the asymptotic ones. Using `T = 1000`
-bounds on 108 observations over-rejects.
+Compare the 5% upper bound: **5.88** at `T = 108` against **5.70**
+asymptotically. Using `T = 1000` bounds on 108 observations over-rejects, which
+is Narayan's point.
 
 **Watch out for `statsmodels`.** Its `UECMResults.bounds_test` indexes the
 critical-value table with `k + 1` instead of `k`, so it reports bounds that are

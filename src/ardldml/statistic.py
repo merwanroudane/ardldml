@@ -51,7 +51,6 @@ import numpy as np
 import pandas as pd
 
 from .firststage import (
-    BalancedDesign,
     FirstStage,
     build_balanced_design,
     cross_fit_projection,
@@ -280,12 +279,23 @@ def compute_statistic(
         estimable &= fit_z["estimable"]
 
     out = _wald_f(fit_dy["resid"], z_res, include_constant=spec.include_constant)
+
+    # When the stationary support is frozen, the projection ran on a subset of
+    # columns, so its support mask is indexed against that subset. Expand it
+    # back to the full design width or downstream consumers -- and the frozen
+    # mask on the next bootstrap path -- would be misaligned.
+    dy_support = fit_dy["support_union"]
+    if frozen_dY_support is not None and frozen_dY_support.any():
+        full = np.zeros(Xs.shape[1], dtype=bool)
+        full[np.flatnonzero(frozen_dY_support)[dy_support]] = True
+        dy_support = full
+
     first = FirstStage(
         dY_resid=fit_dy["resid"],
         Z_resid=z_res,
         design=design,
         folds=folds,
-        supports={"dY": fit_dy["support_union"], "Z": z_support},
+        supports={"dY": dy_support, "Z": z_support},
         estimable=bool(estimable),
     )
     out.update({"first_stage": first, "design": design, "estimable": bool(estimable)})

@@ -262,7 +262,7 @@ def penalty_sensitivity(
     seed: Optional[int] = None,
     **spec_kwargs,
 ) -> pd.DataFrame:
-    """
+    r"""
     Sweep the penalty, the lag order and the ``m_Z`` projection.
 
     The paper's own robustness tables vary all three, and its Table 14 shows a

@@ -59,14 +59,13 @@ estimable rather than silently returning a number.
 from __future__ import annotations
 
 import warnings
-
 from dataclasses import dataclass
 from typing import Dict, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
 
-from .folds import BlockStructure, hblock_folds
+from .folds import BlockStructure
 
 __all__ = [
     "BalancedDesign",
@@ -227,6 +226,23 @@ def build_balanced_design(
     -------
     BalancedDesign
     """
+    # Column names are structural here -- "D.<var>.L<k>" is parsed back into a
+    # lag order by the bootstrap recursion -- so collisions must be caught, not
+    # silently resolved by pandas keeping the last duplicate.
+    if y.name is None or d.name is None:
+        raise ValueError("y and d must be named Series; their names label the design columns")
+    if y.name == d.name:
+        raise ValueError(f"y and d share the name {y.name!r}; give them distinct names")
+    clash = {y.name, d.name} & set(W.columns)
+    if clash:
+        raise ValueError(
+            f"control(s) {sorted(clash)} share a name with y or d, which would collide "
+            "in the design matrix; rename them"
+        )
+    if W.columns.duplicated().any():
+        dupes = sorted(set(W.columns[W.columns.duplicated()]))
+        raise ValueError(f"duplicate control names: {dupes}")
+
     stationary, i1 = classify_controls(W, integrated=integrated, alpha=adf_alpha)
 
     dY = y.diff().rename(f"D.{y.name}")

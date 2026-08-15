@@ -23,7 +23,7 @@ Every function in :mod:`ardldml.plots` applies the style itself unless you pass
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import Dict, Optional
+from typing import Dict
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt

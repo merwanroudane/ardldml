@@ -62,7 +62,7 @@ than broken by independent regeneration.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -215,8 +215,19 @@ def restricted_system_wild_bootstrap(
     y0 = float(y.loc[idx[0]]) - float(dY[0])
     d0 = float(d.loc[idx[0]]) - float(dD[0])
 
-    max_ylag = max([_lag_order(c, f"D.{y_name}") for c in ylag_cols], default=0)
-    max_dlag = max([_lag_order(c, f"D.{d_name}") for c in dlag_only], default=0)
+    # Pre-sample initial conditions for the recursions.
+    #
+    # For t < lag the regenerated path has no history yet, so the recursion is
+    # seeded with the *observed* pre-sample value. The balanced design already
+    # holds it correctly aligned: column "D.<var>.L<lag>" at row t is exactly
+    # the observed difference at t - lag, including when that is pre-sample.
+    # Indexing the difference array with a negative subscript instead would
+    # silently wrap to the end of the sample.
+    ylag_obs = {c: Xall[c].to_numpy(dtype=float) for c in ylag_cols}
+    dterm_obs = {c: Xall[c].to_numpy(dtype=float) for c in dterm_cols}
+    ylag_order = {c: _lag_order(c, f"D.{y_name}") for c in ylag_cols}
+    dterm_order = {c: _lag_order(c, f"D.{d_name}") for c in dterm_cols}
+    dlag_m_order = {c: _lag_order(c, f"D.{d_name}") for c in coef_dlag_m}
 
     def _one_draw(b: int) -> float:
         rng = np.random.default_rng(None if seed is None else seed + b)
@@ -229,8 +240,10 @@ def restricted_system_wild_bootstrap(
             for t in range(n):
                 val = const_m + wm_contrib[t] + v_star[t]
                 for c, coef in coef_dlag_m.items():
-                    lag = _lag_order(c, f"D.{d_name}")
-                    val += coef * (dD_star[t - lag] if t - lag >= 0 else dD[t - lag])
+                    lag = dlag_m_order[c]
+                    val += coef * (
+                        dD_star[t - lag] if t - lag >= 0 else dterm_obs[c][t]
+                    )
                 dD_star[t] = val
         else:
             dD_star = dD.copy()
@@ -239,14 +252,15 @@ def restricted_system_wild_bootstrap(
         for t in range(n):
             val = const_c + w_contrib[t] + eps_star[t]
             for c, coef in coef_ylag.items():
-                lag = _lag_order(c, f"D.{y_name}")
-                val += coef * (dY_star[t - lag] if t - lag >= 0 else dY[t - lag])
+                lag = ylag_order[c]
+                val += coef * (
+                    dY_star[t - lag] if t - lag >= 0 else ylag_obs[c][t]
+                )
             for c, coef in coef_dterm.items():
-                lag = _lag_order(c, f"D.{d_name}")
-                if t - lag >= 0:
-                    val += coef * dD_star[t - lag]
-                else:
-                    val += coef * dD[t - lag]
+                lag = dterm_order[c]
+                val += coef * (
+                    dD_star[t - lag] if t - lag >= 0 else dterm_obs[c][t]
+                )
             dY_star[t] = val
 
         y_star = pd.Series(y0 + np.cumsum(dY_star), index=idx, name=y_name)

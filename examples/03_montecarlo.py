@@ -22,9 +22,9 @@ from pathlib import Path
 warnings.filterwarnings("ignore")
 
 import matplotlib
+
 matplotlib.use("Agg")
 
-import pandas as pd
 
 import ardldml as ad
 from ardldml import DESIGNS, run_design, run_endogeneity_grid

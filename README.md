@@ -147,9 +147,9 @@ from ardldml import simulate_pss_bounds, pss_reference
 simulate_pss_bounds(k=1, case=3, T=1000, nsim=40_000, seed=0)
 #         I(0)   I(1)
 # level
-# 0.10   4.036  4.771
-# 0.05   4.933  5.744     <- published: 4.94, 5.73
-# 0.01   6.822  7.902
+# 0.10   4.059  4.795     <- published: 4.04, 4.78
+# 0.05   4.923  5.736     <- published: 4.94, 5.73
+# 0.01   6.932  7.846     <- published: 6.84, 7.84
 ```
 
 ## Installation
@@ -260,13 +260,13 @@ from ardldml import sample_use_table
 sample_use_table(n=108)
 # h      0     2     5     10
 # K
-# 4   0.75  0.71  0.66  0.57
-# 5   0.80  0.76  0.71  0.62
-# 6   0.83  0.80  0.74  0.65
-# 8   0.88  0.84  0.79  0.70
+# 4   0.75  0.72  0.68  0.61
+# 5   0.80  0.77  0.73  0.65
+# 6   0.83  0.80  0.76  0.68
+# 8   0.88  0.84  0.79  0.71
 ```
 
-On a 108-observation regime, `K=5, h=10` leaves each fold training on 62% of
+On a 108-observation regime, `K=5, h=10` leaves each fold training on 65% of
 the sample. That is the cost of decoupling, and it is why power is modest at
 small `T`.
 
@@ -368,7 +368,7 @@ from ardldml import run_ultra_check
 run_ultra_check(T=100, d=150, R=40)
 #               method  implementable  statistic (median, IQR)
 #      Unpenalised ECM           0.0%              not defined
-# DML-Bounds (h-block)         100.0%              2.45 (2.99)
+# DML-Bounds (h-block)         100.0%              <median> (<IQR>)
 ```
 
 At `d > T` the unpenalised Gram matrix is singular in every draw, so no

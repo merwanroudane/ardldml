@@ -70,13 +70,13 @@ from .critvals import (
     statsmodels_offset,
 )
 from .firststage import (
+    PENALTY_RULES,
     BalancedDesign,
     FirstStage,
     adaptive_post_lasso,
     build_balanced_design,
     classify_controls,
     cross_fit_projection,
-    PENALTY_RULES,
     plugin_penalty,
     tscv_penalty,
 )
