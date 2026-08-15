@@ -156,7 +156,9 @@ def restricted_system_wild_bootstrap(
     y_name = y.name if y.name is not None else "y"
     d_name = d.name if d.name is not None else "d"
 
-    design = build_balanced_design(y, d, W, lags=spec.lags, integrated=spec.integrated)
+    design = build_balanced_design(
+        y, d, W, lags=spec.lags, integrated=spec.integrated, dlags=spec.dlags
+    )
     idx = design.index
     n = design.n
 
@@ -195,10 +197,15 @@ def restricted_system_wild_bootstrap(
 
     # ---- step 2b: marginal model for dD -----------------------------------
     dD = design.X[f"D.{d_name}"].to_numpy(dtype=float)
-    dlag_only = [c for c in dterm_cols if c != f"D.{d_name}"]
+    # Appendix B: the marginal model regresses dD on "an intercept, its own
+    # lag, and the first-stage-selected differenced controls". Its own lags
+    # come from design.dD_lags, which exists whether or not the conditional
+    # design carries them -- equation (3) does not.
+    dlag_only = list(design.dD_lags.columns)
+    lag_frame = design.dD_lags
     Xm_parts = [np.ones((n, 1))]
     if dlag_only:
-        Xm_parts.append(Xall[dlag_only].to_numpy(dtype=float))
+        Xm_parts.append(lag_frame.to_numpy(dtype=float))
     if wsel_cols:
         Xm_parts.append(Xall[wsel_cols].to_numpy(dtype=float))
     Xm = np.hstack(Xm_parts)
@@ -225,6 +232,7 @@ def restricted_system_wild_bootstrap(
     # silently wrap to the end of the sample.
     ylag_obs = {c: Xall[c].to_numpy(dtype=float) for c in ylag_cols}
     dterm_obs = {c: Xall[c].to_numpy(dtype=float) for c in dterm_cols}
+    dterm_obs.update({c: lag_frame[c].to_numpy(dtype=float) for c in dlag_only})
     ylag_order = {c: _lag_order(c, f"D.{y_name}") for c in ylag_cols}
     dterm_order = {c: _lag_order(c, f"D.{d_name}") for c in dterm_cols}
     dlag_m_order = {c: _lag_order(c, f"D.{d_name}") for c in coef_dlag_m}

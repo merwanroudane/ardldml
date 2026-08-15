@@ -247,8 +247,12 @@ print(res)
 
 | target | order | projected on |
 | --- | --- | --- |
-| `ΔY_t` | `I(0)` | stationary controls in levels, integrated controls **differenced**, lagged `ΔY`, `ΔD` |
+| `ΔY_t` | `I(0)` | stationary controls in levels, integrated controls **differenced**, lagged `ΔY`, contemporaneous `ΔD` |
 | `Z_{t−1} = (Y_{t−1}, D_{t−1})` | `I(1)` | control **levels** |
+
+The short-run block is equation (3) verbatim: `δΔD_t + Σᵢ γᵢΔY_{t−i}`, with no
+lagged `ΔD`. If you want the general ARDL(p,q) structure instead, pass
+`dlags=True` — but that is a departure from the paper, so say so if you use it.
 
 Regressing a stationary target on integrated levels would be spurious. All
 absorption happens in the second row.

@@ -105,8 +105,13 @@ because their targets have different integration orders:
 
 | target | integration order | projected on |
 | --- | --- | --- |
-| `ΔY_t` | `I(0)` | stationary controls in **levels**, integrated controls in **differences**, lagged differences of `Y` and `D` |
+| `ΔY_t` | `I(0)` | stationary controls in **levels**, integrated controls in **differences**, lagged `ΔY`, contemporaneous `ΔD` |
 | `Z_{t-1} = (Y_{t-1}, D_{t-1})` | `I(1)` | control **levels** |
+
+The short-run block follows equation (3) exactly — `δΔD_t` plus `Σᵢ γᵢΔY_{t−i}`,
+with **no lagged `ΔD`**. Pass `dlags=True` for the general ARDL(p,q) structure.
+The bootstrap's *marginal* model for `ΔD` keeps its own lags either way, as
+Appendix B specifies; they are two different models.
 
 Regressing a stationary target on integrated levels would be unbalanced and
 spurious. Absorption lives entirely in the second row.
@@ -222,6 +227,7 @@ power. It tells you where to look.
 | `buffer` | `int` | `0` | buffer `h`; set it to cover the memory of the process |
 | `adaptive` | `bool` | `True` | adaptive weights on the `m_Z` projection |
 | `adaptive_integrated_only` | `bool` | `True` | restrict those weights to the **integrated block**, per §4.1 |
+| `dlags` | `bool` | `False` | include lags of ΔD. `False` is equation (3) as written; `True` gives general ARDL(p,q) |
 | `penalised` | `bool` | `True` | `False` gives unpenalised OLS projections (low-dimensional corner) |
 | `penalty` | `str`/`float` | `"plugin"` | `"plugin"`, `"low"`/`"medium"`/`"high"`, or a fixed λ |
 | `c` | `float` | `1.1` | constant in `λ = c·√(log d/n)·σ̂` |

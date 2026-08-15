@@ -154,6 +154,9 @@ class BalancedDesign:
         The tested level terms :math:`Z_{t-1} = (Y_{t-1}, D_{t-1})`.
     Wlev : pandas.DataFrame
         Control **levels** used to project ``Z``.
+    dD_lags : pandas.DataFrame
+        Lags of :math:`\\Delta D`. Present whether or not they enter ``X``,
+        because the bootstrap's marginal model needs them regardless.
     index : pandas.Index
         Common index after lag construction and listwise deletion.
     stationary, integrated : list of str
@@ -164,6 +167,7 @@ class BalancedDesign:
     X: pd.DataFrame
     Z: pd.DataFrame
     Wlev: pd.DataFrame
+    dD_lags: pd.DataFrame
     index: pd.Index
     stationary: list
     integrated: list
@@ -202,6 +206,7 @@ def build_balanced_design(
     lags: int = 4,
     integrated: Optional[Sequence[str]] = None,
     adf_alpha: float = 0.10,
+    dlags: bool = False,
 ) -> BalancedDesign:
     """
     Construct the balanced first-stage design.
@@ -221,6 +226,18 @@ def build_balanced_design(
         Controls to treat as :math:`I(1)`; see :func:`classify_controls`.
     adf_alpha : float
         Level for the ADF fallback when ``integrated`` is not given.
+    dlags : bool
+        Include lags of :math:`\\Delta D` in the conditional design ``X``.
+
+        Defaults to ``False``, which is equation (3) as written: the paper's
+        conditional error-correction form carries the **contemporaneous**
+        :math:`\\delta\\Delta D_t` term and lagged :math:`\\Delta Y` only, and
+        Assumption 4 lists the stationary set as
+        :math:`X_t = (W_{0t}, \\Delta W_{1t}, \\Delta Y_{t-1}, \\ldots)`.
+        Setting ``True`` gives the general ARDL(p, q) short-run structure, which
+        is standard practice but is not what the paper specifies. The
+        bootstrap's marginal model for :math:`\\Delta D` always has its own
+        lags either way -- see ``dD_lags``.
 
     Returns
     -------
@@ -255,14 +272,27 @@ def build_balanced_design(
         cols[f"D.{c}"] = W[c].diff()
     for i in range(1, int(lags) + 1):
         cols[f"D.{y.name}.L{i}"] = dY.shift(i)
-        cols[f"D.{d.name}.L{i}"] = dD.shift(i)
+    if dlags:
+        for i in range(1, int(lags) + 1):
+            cols[f"D.{d.name}.L{i}"] = dD.shift(i)
     cols[f"D.{d.name}"] = dD
+
+    # Lags of the focal regressor's difference, kept whether or not they enter
+    # the conditional design. Equation (3) has only the contemporaneous
+    # delta-D term, but Appendix B's *marginal* model for delta-D regresses it
+    # on "an intercept, its own lag, and the first-stage-selected differenced
+    # controls" -- two different models, so the lags are needed either way.
+    dD_lags = pd.DataFrame(
+        {f"D.{d.name}.L{i}": dD.shift(i) for i in range(1, int(lags) + 1)},
+        index=y.index,
+    )
 
     X = pd.DataFrame(cols, index=y.index)
     Z = pd.DataFrame({f"{y.name}.L1": y.shift(1), f"{d.name}.L1": d.shift(1)}, index=y.index)
     Wlev = W.copy()
 
-    frame = pd.concat([dY, X, Z, Wlev], axis=1).dropna()
+    frame = pd.concat([dY, X, Z, Wlev, dD_lags], axis=1)
+    frame = frame.loc[:, ~frame.columns.duplicated()].dropna()
     idx = frame.index
 
     # Section 5.1 keeps the integrated nuisance block fixed-dimensional: "the
@@ -288,6 +318,7 @@ def build_balanced_design(
         X=X.loc[idx],
         Z=Z.loc[idx],
         Wlev=Wlev.loc[idx],
+        dD_lags=dD_lags.loc[idx],
         index=idx,
         stationary=list(stationary),
         integrated=list(i1),

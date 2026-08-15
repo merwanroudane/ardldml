@@ -54,18 +54,46 @@ def test_s41_levels_projected_on_confounder_levels(system):
     assert not any(c.startswith("D.") for c in des.Wlev.columns)
 
 
-def test_s32_short_run_terms_are_nuisance(system):
+def test_eq3_conditional_design_matches_the_paper(system):
     """
-    Section 3.2: "collect the short-run terms and deterministics in a nuisance
-    vector and test the lagged levels after projecting them out." So lagged
-    differences of Y and D, and contemporaneous dD, all belong in X_t.
+    Equation (3):
+
+        dY_t = a0 + rho Y_{t-1} + theta D_{t-1} + delta dD_t
+               + sum_i gamma_i dY_{t-i} + e_t
+
+    The conditional form carries the *contemporaneous* dD term and lagged dY
+    only. Assumption 4 agrees: X_t = (W_0t, dW_1t, dY_{t-1}, ...). Lags of dD
+    are not part of it, so they must be absent by default.
     """
     y, d, W, integ = system
     des = build_balanced_design(y, d, W, lags=3, integrated=integ)
-    assert "D.D" in des.X.columns, "contemporaneous dD is a short-run nuisance term"
+    assert "D.D" in des.X.columns, "the contemporaneous dD term of equation (3)"
     for i in (1, 2, 3):
-        assert f"D.Y.L{i}" in des.X.columns
+        assert f"D.Y.L{i}" in des.X.columns, "lagged dY, the gamma_i terms"
+        assert f"D.D.L{i}" not in des.X.columns, "equation (3) has no lagged dD"
+
+
+def test_dlags_opt_in_gives_general_ardl(system):
+    """The ARDL(p, q) generalisation is available but is not the default."""
+    from ardldml.statistic import DMLBoundsSpec
+
+    assert DMLBoundsSpec().dlags is False
+    y, d, W, integ = system
+    des = build_balanced_design(y, d, W, lags=3, integrated=integ, dlags=True)
+    for i in (1, 2, 3):
         assert f"D.D.L{i}" in des.X.columns
+
+
+def test_appb_marginal_model_keeps_its_own_lags(system):
+    """
+    Appendix B gives the *marginal* model for dD "an intercept, its own lag,
+    and the first-stage-selected differenced controls". Those lags must exist
+    even though equation (3) keeps them out of the conditional design.
+    """
+    y, d, W, integ = system
+    des = build_balanced_design(y, d, W, lags=3, integrated=integ)
+    assert list(des.dD_lags.columns) == ["D.D.L1", "D.D.L2", "D.D.L3"]
+    assert not des.dD_lags.isna().any().any()
 
 
 def test_s41_only_two_tested_levels(system):

@@ -297,7 +297,7 @@ def penalty_sensitivity(
         Short-run lag orders to try.
     projections : sequence of str
         The three estimators Section 7.5 compares: ``"adaptive"``
-        (DML-Bounds), ``"plain"`` (vanilla :math:`\ell_1`) and ``"ols"``
+        (DML-Bounds), ``"plain"`` (vanilla :math:`\\ell_1`) and ``"ols"``
         (the unpenalised conditional ECM benchmark).
     B : int, optional
         Bootstrap draws per cell. If ``None``, no bootstrap is run and only the

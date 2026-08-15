@@ -90,6 +90,10 @@ class DMLBoundsSpec:
     adaptive : bool
         Adaptive weights on the :math:`m_Z` projection. ``True`` is the paper's
         default; ``False`` gives the plain-LASSO arm of the diagnostic.
+    dlags : bool
+        Include lags of :math:`\\Delta D` in the conditional design. Defaults
+        to ``False``, matching equation (3), which carries only the
+        contemporaneous term. ``True`` gives the general ARDL(p, q) structure.
     adaptive_integrated_only : bool
         Restrict the adaptive weights to the **integrated block**, which is
         what Section 4.1 specifies: the weighting exists because "vanilla
@@ -132,6 +136,7 @@ class DMLBoundsSpec:
     integrated: Optional[Sequence[str]] = None
     include_constant: bool = False
     adaptive_integrated_only: bool = True
+    dlags: bool = False
 
 
 def _wald_f(
@@ -220,7 +225,7 @@ def compute_statistic(
         ``design``, ``estimable``.
     """
     design = build_balanced_design(
-        y, d, W, lags=spec.lags, integrated=spec.integrated
+        y, d, W, lags=spec.lags, integrated=spec.integrated, dlags=spec.dlags
     )
     n = design.n
     folds = hblock_folds(n, n_blocks=spec.n_blocks, buffer=spec.buffer)
