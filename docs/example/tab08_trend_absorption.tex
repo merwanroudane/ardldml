@@ -1,0 +1,21 @@
+\begin{table}[htbp]
+\centering
+\caption{The four-fit trend-absorption diagnostic, 1999-2007 regime.}
+\label{tab:tab08_trend_absorption}
+\begin{threeparttable}
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+controls & m\_Z projection & n\_controls & F & boot\_cv95 & boot\_p & verdict & alpha & theta & theta\_se \\
+\midrule
+full & adaptive & 7 & 0.404000 & 3.965000 & 0.731000 & fail to reject & 0.002000 & -0.971000 & 0.897000 \\
+full & ols & 7 & 1.107000 & 4.806000 & 0.537000 & fail to reject & 0.018000 & -0.012000 & 0.165000 \\
+reduced & adaptive & 5 & 1.373000 & 11.005000 & 0.597000 & fail to reject & 0.006000 & -0.899000 & 0.379000 \\
+reduced & ols & 5 & 2.334000 & 7.468000 & 0.359000 & fail to reject & 0.003000 & -2.791000 & 7.433000 \\
+\bottomrule
+\end{tabular}
+
+\begin{tablenotes}[flushleft]\small
+\item Dropped from the reduced set: m2, oil.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}

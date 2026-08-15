@@ -713,6 +713,14 @@ function table(cols, rows, caption, classer) {
   return h + '</table></div>';
 }
 
+/* Seconds as something a reader can hold in their head. */
+function fmtDur(seconds) {
+  const s = Math.round(seconds);
+  if (s < 90) return `${s}s`;
+  if (s < 5400) return `${Math.round(s / 60)} min`;
+  return `${Math.floor(s / 3600)}h ${Math.round((s % 3600) / 60)}m`;
+}
+
 const verdictClass = (k, v) =>
   k === 'verdict' ? (String(v).startsWith('reject') ? 'reject' : 'fail') : '';
 
@@ -787,11 +795,8 @@ fetch('_results.json').then(r => r.json()).then(D => {
   $('ultratable').innerHTML = table(ulCols, D.ultra,
     'T = 100, d = 150, mixed I(0)/I(1) nuisance. Implementability, not a size comparison.');
 
-  const secs = Math.round(D.settings.elapsed_sec);
-  const dur = secs < 90 ? `${secs}s`
-            : secs < 5400 ? `${Math.round(secs / 60)} min`
-            : `${Math.floor(secs / 3600)}h ${Math.round((secs % 3600) / 60)}m`;
-  $('genstamp').textContent = `results regenerated in ${dur} · seed ${D.settings.seed}`;
+  $('genstamp').textContent =
+    `results regenerated in ${fmtDur(D.settings.elapsed_sec)} · seed ${D.settings.seed}`;
 }).catch(e => {
   document.querySelectorAll('.loading:not(.loading-ex)').forEach(el => {
     el.textContent = 'Could not load results. Run: python docs/build_site_assets.py';
@@ -827,7 +832,7 @@ fetch('example/_manifest.json').then(r => r.json()).then(M => {
        <span class="tag">R = <b>${s.montecarlo ? s.R : '—'}</b></span>
        <span class="tag">lags <b>${s.lags}</b>, K = <b>${s.n_blocks}</b>, h = <b>${s.buffer}</b></span>
        <span class="tag">seed <b>${s.seed}</b></span>
-       <span class="tag"><b>${M.elapsed_sec}s</b> end to end</span>
+       <span class="tag"><b>${fmtDur(M.elapsed_sec)}</b> end to end</span>
        <span class="tag">run ${esc(M.generated)}</span>
      </div>`;
 

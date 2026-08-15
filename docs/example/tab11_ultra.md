@@ -1,0 +1,4 @@
+| method               | implementable across draws   | statistic (median, IQR)   |
+|:---------------------|:-----------------------------|:--------------------------|
+| Unpenalised ECM      | 0.0%                         | not defined               |
+| DML-Bounds (h-block) | 100.0%                       | 2.50 (2.99)               |

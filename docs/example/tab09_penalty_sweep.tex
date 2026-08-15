@@ -1,0 +1,24 @@
+\begin{table}[htbp]
+\centering
+\caption{Estimators against penalty rules, 1999-2007 regime.}
+\label{tab:tab09_penalty_sweep}
+\begin{threeparttable}
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+lags & m\_Z projection & penalty & n\_selected\_Z & F & boot\_cv95 & boot\_p & alpha & theta & theta\_se \\
+\midrule
+4 & adaptive & low & 1 & 0.545400 & NaN & NaN & 0.002400 & -1.020600 & 0.909800 \\
+4 & adaptive & medium & 1 & 0.279400 & NaN & NaN & 0.002100 & -0.915000 & 0.887900 \\
+4 & adaptive & high & 1 & 0.686900 & NaN & NaN & 0.000700 & -2.849300 & 15.783400 \\
+4 & plain & low & 5 & 0.889000 & NaN & NaN & 0.014500 & -0.046100 & 0.246300 \\
+4 & plain & medium & 5 & 1.293300 & NaN & NaN & 0.023900 & 0.023300 & 0.112500 \\
+4 & plain & high & 5 & 0.323800 & NaN & NaN & 0.009200 & -0.056500 & 0.444600 \\
+4 & ols & - & 7 & 1.125000 & NaN & NaN & 0.054300 & 0.059100 & 0.034100 \\
+\bottomrule
+\end{tabular}
+
+\begin{tablenotes}[flushleft]\small
+\item Rules are lambda-min, the geometric midpoint and lambda-1se. The unpenalised projection ignores the rule.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}

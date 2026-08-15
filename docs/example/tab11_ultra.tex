@@ -1,0 +1,19 @@
+\begin{table}[htbp]
+\centering
+\caption{T = 100 with d = 150 controls.}
+\label{tab:tab11_ultra}
+\begin{threeparttable}
+\begin{tabular}{lrr}
+\toprule
+method & implementable across draws & statistic (median, IQR) \\
+\midrule
+Unpenalised ECM & 0.0\% & not defined \\
+DML-Bounds (h-block) & 100.0\% & 2.50 (2.99) \\
+\bottomrule
+\end{tabular}
+
+\begin{tablenotes}[flushleft]\small
+\item The unpenalised conditional ECM has a singular Gram matrix in every replication, so no statistic exists. This is implementability, not a size comparison.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}

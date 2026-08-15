@@ -1,0 +1,25 @@
+\begin{table}[htbp]
+\centering
+\caption{Pass-through by monetary regime and conditioning set.}
+\label{tab:tab07_regimes}
+\begin{threeparttable}
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+regime & conditioning set & n & controls & F & bootstrap cv .95 & p & verdict & theta & se \\
+\midrule
+1973-1985 & full & 151 & 7 & 9.111000 & 6.705000 & 0.017000 & reject & 3.814000 & 10.355000 \\
+1973-1985 & reduced & 151 & 5 & 8.358000 & 6.612000 & 0.029000 & reject & 10.285000 & 14.132000 \\
+1986-1998 & full & 151 & 7 & 18.712000 & 13.681000 & 0.012000 & reject & -1.068000 & 0.366000 \\
+1986-1998 & reduced & 151 & 5 & 32.848000 & 10.815000 & 0.000000 & reject & -1.110000 & 0.275000 \\
+1999-2007 & full & 103 & 7 & 0.404000 & 3.965000 & 0.731000 & fail to reject & -0.971000 & 0.897000 \\
+1999-2007 & reduced & 103 & 5 & 1.373000 & 11.399000 & 0.598000 & fail to reject & -0.899000 & 0.379000 \\
+2008-2020 & full & 151 & 7 & 3.703000 & 10.673000 & 0.400000 & fail to reject & 0.571000 & 0.222000 \\
+2008-2020 & reduced & 151 & 5 & 3.384000 & 8.863000 & 0.388000 & fail to reject & 0.555000 & 0.226000 \\
+\bottomrule
+\end{tabular}
+
+\begin{tablenotes}[flushleft]\small
+\item Critical values are the 95th percentile of the restricted system wild bootstrap, B = 999. Verdicts are bootstrap decisions, not comparisons with a tabulated bound.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}

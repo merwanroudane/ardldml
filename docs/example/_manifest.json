@@ -1,0 +1,815 @@
+{
+ "generated": "2026-08-15 16:10 UTC",
+ "version": "0.1.0",
+ "elapsed_sec": 7834.8,
+ "settings": {
+  "B": 999,
+  "R": 60,
+  "seed": 20260625,
+  "lags": 4,
+  "n_blocks": 5,
+  "buffer": 6,
+  "focus": "1999-2007",
+  "style": "sunny",
+  "montecarlo": true
+ },
+ "script": "04_full_analysis.py",
+ "steps": [
+  {
+   "n": 1,
+   "title": "The data",
+   "blurb": "Nine monthly FRED-MD series, 1973-2020, bundled with the package. Nothing is downloaded.",
+   "code": "def step_data(run: Run):\n    full = ad.load_passthrough()\n    run.data = full\n\n    print(f\"{len(full)} months, {full.shape[1]} series, \"\n          f\"{full.index.min():%Y-%m} to {full.index.max():%Y-%m}\")\n    print(f\"outcome   cpi   (log US consumer price index)\")\n    print(f\"regressor neer  (log trade-weighted dollar)\")\n    print(f\"controls  {', '.join(CONTROLS)}\")\n    print(f\"of which integrated: {', '.join(DEFAULT_INTEGRATED)}\")\n    print(f\"reduced set drops:   {', '.join(REDUCED_DROP)}\\n\")\n\n    desc = (full.describe().T[[\"mean\", \"std\", \"min\", \"max\"]]\n            .round(3).reset_index().rename(columns={\"index\": \"series\"}))\n    run.table(\"tab01_data_summary\", desc,\n              \"The bundled pass-through data, 1973-2020.\",\n              notes=\"Series in logs except the rates, which are in percent.\")\n\n    spans = pd.DataFrame([\n        {\"regime\": r, \"start\": a, \"end\": b,\n         \"n\": len(ad.load_passthrough(regime=r))}\n        for r, (a, b) in PASSTHROUGH_REGIMES.items()\n    ])\n    run.table(\"tab02_regimes\", spans,\n              \"The four monetary regimes and their sample sizes.\",\n              notes=\"Testing within regimes avoids conflating a structural \"\n                    \"break with a long-run relationship.\")\n\n    run.fig(\"fig01_series\", ad.plot_series(full, title=None),\n            \"All nine series over the full 1973-2020 window.\")\n    run.fig(\"fig02_regimes\", ad.plot_regimes(full, PASSTHROUGH_REGIMES, \"neer\"),\n            \"The trade-weighted dollar with the four regime windows shaded.\")",
+   "output": "576 months, 9 series, 1973-01 to 2020-12\noutcome   cpi   (log US consumer price index)\nregressor neer  (log trade-weighted dollar)\ncontrols  m2, ffr, ip, unrate, oil, gs10, baa\nof which integrated: m2, ip, oil, gs10, baa, ffr\nreduced set drops:   m2, oil\n\n| series   |   mean |   std |   min |    max |\n|:---------|-------:|------:|------:|-------:|\n| cpi      |  4.951 | 0.484 | 3.754 |  5.569 |\n| neer     |  4.705 | 0.14  | 4.415 |  5.138 |\n| m2       |  8.316 | 0.823 | 6.697 |  9.859 |\n| ffr      |  5.04  | 4.038 | 0.05  | 19.1   |\n| ip       |  4.279 | 0.299 | 3.687 |  4.645 |\n| unrate   |  6.286 | 1.707 | 3.5   | 14.8   |\n| oil      |  3.397 | 0.71  | 1.27  |  4.897 |\n| gs10     |  6.196 | 3.205 | 0.62  | 15.32  |\n| baa      |  8.437 | 3.024 | 3.16  | 17.18  |\n    -> tab01_data_summary.csv / .tex / .md\n| regime    | start   | end     |   n |\n|:----------|:--------|:--------|----:|\n| 1973-1985 | 1973-01 | 1985-12 | 156 |\n| 1986-1998 | 1986-01 | 1998-12 | 156 |\n| 1999-2007 | 1999-01 | 2007-12 | 108 |\n| 2008-2020 | 2008-01 | 2020-12 | 156 |\n    -> tab02_regimes.csv / .tex / .md\n    -> fig01_series.png\n    -> fig02_regimes.png",
+   "seconds": 1.6,
+   "figures": [
+    {
+     "file": "fig01_series.png",
+     "caption": "All nine series over the full 1973-2020 window."
+    },
+    {
+     "file": "fig02_regimes.png",
+     "caption": "The trade-weighted dollar with the four regime windows shaded."
+    }
+   ],
+   "tables": [
+    {
+     "file": "tab01_data_summary.csv",
+     "caption": "The bundled pass-through data, 1973-2020.",
+     "notes": "Series in logs except the rates, which are in percent.",
+     "columns": [
+      "series",
+      "mean",
+      "std",
+      "min",
+      "max"
+     ],
+     "rows": [
+      {
+       "series": "cpi",
+       "mean": 4.951,
+       "std": 0.484,
+       "min": 3.754,
+       "max": 5.569
+      },
+      {
+       "series": "neer",
+       "mean": 4.705,
+       "std": 0.14,
+       "min": 4.415,
+       "max": 5.138
+      },
+      {
+       "series": "m2",
+       "mean": 8.316,
+       "std": 0.823,
+       "min": 6.697,
+       "max": 9.859
+      },
+      {
+       "series": "ffr",
+       "mean": 5.04,
+       "std": 4.038,
+       "min": 0.05,
+       "max": 19.1
+      },
+      {
+       "series": "ip",
+       "mean": 4.279,
+       "std": 0.299,
+       "min": 3.687,
+       "max": 4.645
+      },
+      {
+       "series": "unrate",
+       "mean": 6.286,
+       "std": 1.707,
+       "min": 3.5,
+       "max": 14.8
+      },
+      {
+       "series": "oil",
+       "mean": 3.397,
+       "std": 0.71,
+       "min": 1.27,
+       "max": 4.897
+      },
+      {
+       "series": "gs10",
+       "mean": 6.196,
+       "std": 3.205,
+       "min": 0.62,
+       "max": 15.32
+      },
+      {
+       "series": "baa",
+       "mean": 8.437,
+       "std": 3.024,
+       "min": 3.16,
+       "max": 17.18
+      }
+     ]
+    },
+    {
+     "file": "tab02_regimes.csv",
+     "caption": "The four monetary regimes and their sample sizes.",
+     "notes": "Testing within regimes avoids conflating a structural break with a long-run relationship.",
+     "columns": [
+      "regime",
+      "start",
+      "end",
+      "n"
+     ],
+     "rows": [
+      {
+       "regime": "1973-1985",
+       "start": "1973-01",
+       "end": "1985-12",
+       "n": 156
+      },
+      {
+       "regime": "1986-1998",
+       "start": "1986-01",
+       "end": "1998-12",
+       "n": 156
+      },
+      {
+       "regime": "1999-2007",
+       "start": "1999-01",
+       "end": "2007-12",
+       "n": 108
+      },
+      {
+       "regime": "2008-2020",
+       "start": "2008-01",
+       "end": "2020-12",
+       "n": 156
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 2,
+   "title": "Where the critical values come from",
+   "blurb": "No bounds table is stored in the package. The classical bracket is regenerated from the data-generating process Pesaran, Shin and Smith printed in the notes to their Table CI, which makes it checkable against print and extends it past where the published tables stop.",
+   "code": "def step_critvals(run: Run):\n    tab = ad.critical_value_table(k_values=(1, 2, 3, 4), case=3, T=1000,\n                                  nsim=8000, level=0.05, seed=0)\n    print(f\"simulated, {tab.attrs['note']}\\n\")\n\n    rows = []\n    for k in (1, 2, 3, 4):\n        try:\n            pub = ad.pss_reference(k, 3)\n            lo = round(float(pub.loc[0.05, \"I(0)\"]), 2)\n            hi = round(float(pub.loc[0.05, \"I(1)\"]), 2)\n        except KeyError:\n            lo = hi = None          # not in the published table at all\n        rows.append({\n            \"k\": k,\n            \"simulated I(0)\": float(tab.loc[k, \"I(0)\"]),\n            \"published I(0)\": lo,\n            \"simulated I(1)\": float(tab.loc[k, \"I(1)\"]),\n            \"published I(1)\": hi,\n        })\n    run.table(\"tab03_bounds_validation\", pd.DataFrame(rows),\n              \"Regenerated 5% bounds against the published table, case III, T = 1000.\",\n              notes=\"Agreement is to Monte Carlo error. The empty published \"\n                    \"cells are values the printed table does not carry at all; \"\n                    \"the simulator has no such gaps, which is the practical \"\n                    \"argument for generating bounds rather than storing them.\")\n\n    off = ad.statsmodels_offset(k=1, case=3)\n    print(\"\\nthe statsmodels off-by-one, k = 1, case III:\")\n    print(off.round(3).to_string())\n    print(\"\\n  UECMResults.bounds_test indexes its table with k+1 instead of k,\")\n    print(\"  so the bounds it reports are one row too far down, hence too small,\")\n    print(\"  and the test over-rejects. ardldml never calls it.\")\n\n    run.fig(\"fig03_bracket\", ad.plot_bracket(k=10, k_tilde=6),\n            \"The trend-absorption bracket: as the effective integrated count \"\n            \"falls from k to 0, the limiting null slides from the I(1) endpoint \"\n            \"to the I(0) endpoint. Classical bounds testing is the right-hand end.\")",
+   "output": "simulated, case 3, T=1000, nsim=8000, level=5%\n\n|   k |   simulated I(0) |   published I(0) |   simulated I(1) |   published I(1) |\n|----:|-----------------:|-----------------:|-----------------:|-----------------:|\n|   1 |            4.811 |             4.94 |            5.708 |             5.73 |\n|   2 |            3.815 |             3.79 |            4.792 |             4.85 |\n|   3 |            3.24  |           nan    |            4.385 |           nan    |\n|   4 |            2.906 |             2.86 |            4.034 |             4.01 |\n    -> tab03_bounds_validation.csv / .tex / .md\n\nthe statsmodels off-by-one, k = 1, case III:\n                               I(0)  I(1)\ncorrect (k=1)                  4.94  5.73\nstatsmodels reports (k=2 row)  3.79  4.85\n\n  UECMResults.bounds_test indexes its table with k+1 instead of k,\n  so the bounds it reports are one row too far down, hence too small,\n  and the test over-rejects. ardldml never calls it.\n    -> fig03_bracket.png",
+   "seconds": 14.0,
+   "figures": [
+    {
+     "file": "fig03_bracket.png",
+     "caption": "The trend-absorption bracket: as the effective integrated count falls from k to 0, the limiting null slides from the I(1) endpoint to the I(0) endpoint. Classical bounds testing is the right-hand end."
+    }
+   ],
+   "tables": [
+    {
+     "file": "tab03_bounds_validation.csv",
+     "caption": "Regenerated 5% bounds against the published table, case III, T = 1000.",
+     "notes": "Agreement is to Monte Carlo error. The empty published cells are values the printed table does not carry at all; the simulator has no such gaps, which is the practical argument for generating bounds rather than storing them.",
+     "columns": [
+      "k",
+      "simulated I(0)",
+      "published I(0)",
+      "simulated I(1)",
+      "published I(1)"
+     ],
+     "rows": [
+      {
+       "k": 1,
+       "simulated I(0)": 4.811,
+       "published I(0)": 4.94,
+       "simulated I(1)": 5.708,
+       "published I(1)": 5.73
+      },
+      {
+       "k": 2,
+       "simulated I(0)": 3.815,
+       "published I(0)": 3.79,
+       "simulated I(1)": 4.792,
+       "published I(1)": 4.85
+      },
+      {
+       "k": 3,
+       "simulated I(0)": 3.24,
+       "published I(0)": null,
+       "simulated I(1)": 4.385,
+       "published I(1)": null
+      },
+      {
+       "k": 4,
+       "simulated I(0)": 2.906,
+       "published I(0)": 2.86,
+       "simulated I(1)": 4.034,
+       "published I(1)": 4.01
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "title": "The classical test first",
+   "blurb": "Run the ordinary three-step procedure before anything else, so there is something to compare against. Once with the dollar alone, once holding the seven controls fixed.",
+   "code": "def step_classical(run: Run):\n    df = ad.load_passthrough(regime=FOCUS)\n\n    plain = ad.classical_bounds_test(df[\"cpi\"], df[[\"neer\"]], lags=LAGS, case=3)\n    print(f\"[dollar alone]      {plain.summary()}\")\n\n    withw = ad.classical_bounds_test(df[\"cpi\"], df[[\"neer\"]], lags=LAGS, case=3,\n                                     fixed=df[CONTROLS])\n    print(f\"\\n[controls fixed]    {withw.summary()}\")\n\n    rows = []\n    for label, cb in ((\"dollar alone\", plain), (\"+ 7 controls fixed\", withw)):\n        br = cb.bounds(nsim=8000, seed=0)\n        lo, hi = float(br.loc[0.05, \"I(0)\"]), float(br.loc[0.05, \"I(1)\"])\n        rows.append({\n            \"specification\": label, \"n\": cb.nobs, \"k\": cb.k,\n            \"F\": round(cb.f_stat, 3), \"t\": round(cb.t_stat, 3),\n            \"I(0) 5%\": round(lo, 3), \"I(1) 5%\": round(hi, 3),\n            # bounds_stars returns \"\" below the lower bound; spell it out here\n            \"verdict\": ad.bounds_stars(cb.f_stat, lo, hi) or \"fail to reject\",\n            \"theta(neer)\": round(float(cb.long_run[\"neer\"]), 3),\n        })\n    run.table(\"tab04_classical\", pd.DataFrame(rows),\n              f\"The classical bounds test on the {FOCUS} regime.\",\n              notes=\"Bounds are simulated at this sample size, not read off a \"\n                    \"table calibrated at T = 1000. Holding controls fixed is \"\n                    \"the best the classical procedure can do with them; it \"\n                    \"cannot account for their trend content.\")",
+   "output": "[dollar alone]      Classical bounds test (Pesaran, Shin and Smith 2001)\nH0: no level relationship          F = 1.629\nCase 3 (unrestricted intercept, no trend)    t = -1.128\nk = 1 forcing regressor(s), 104 observations, 2 restrictions\n\nsimulated bounds (T=104, nsim=20000):\n        I(0)   I(1)\nlevel              \n0.10   4.107  4.896\n0.05   5.003  5.925\n0.01   7.107  8.183\n\nstep 3  Wald(theta=0) = 3.883  (chi2 p = 0.0488)\nspeed of adjustment alpha = 0.0076\n\n[controls fixed]    Classical bounds test (Pesaran, Shin and Smith 2001)\nH0: no level relationship          F = 11.084\nCase 3 (unrestricted intercept, no trend)    t = -4.697\nk = 1 forcing regressor(s), 104 observations, 2 restrictions\n\nsimulated bounds (T=104, nsim=20000):\n        I(0)   I(1)\nlevel              \n0.10   4.107  4.896\n0.05   5.003  5.925\n0.01   7.107  8.183\n\nstep 3  Wald(theta=0) = 0.043  (chi2 p = 0.8352)\nspeed of adjustment alpha = 0.3063\n| specification      |   n |   k |      F |      t |   I(0) 5% |   I(1) 5% | verdict        |   theta(neer) |\n|:-------------------|----:|----:|-------:|-------:|----------:|----------:|:---------------|--------------:|\n| dollar alone       | 104 |   1 |  1.629 | -1.128 |     4.996 |     5.973 | fail to reject |        -0.875 |\n| + 7 controls fixed | 104 |   1 | 11.084 | -4.697 |     4.996 |     5.973 | reject         |         0.004 |\n    -> tab04_classical.csv / .tex / .md",
+   "seconds": 13.2,
+   "figures": [],
+   "tables": [
+    {
+     "file": "tab04_classical.csv",
+     "caption": "The classical bounds test on the 1999-2007 regime.",
+     "notes": "Bounds are simulated at this sample size, not read off a table calibrated at T = 1000. Holding controls fixed is the best the classical procedure can do with them; it cannot account for their trend content.",
+     "columns": [
+      "specification",
+      "n",
+      "k",
+      "F",
+      "t",
+      "I(0) 5%",
+      "I(1) 5%",
+      "verdict",
+      "theta(neer)"
+     ],
+     "rows": [
+      {
+       "specification": "dollar alone",
+       "n": 104,
+       "k": 1,
+       "F": 1.629,
+       "t": -1.128,
+       "I(0) 5%": 4.996,
+       "I(1) 5%": 5.973,
+       "verdict": "fail to reject",
+       "theta(neer)": -0.875
+      },
+      {
+       "specification": "+ 7 controls fixed",
+       "n": 104,
+       "k": 1,
+       "F": 11.084,
+       "t": -4.697,
+       "I(0) 5%": 4.996,
+       "I(1) 5%": 5.973,
+       "verdict": "reject",
+       "theta(neer)": 0.004
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "title": "What cross-fitting costs",
+   "blurb": "The h-block buffer is what decouples first-stage error from the evaluation-fold innovations. It is not free, and the cost should be visible before a configuration is chosen.",
+   "code": "def step_folds(run: Run):\n    n = len(ad.load_passthrough(regime=FOCUS))\n    su = ad.sample_use_table(n=n)\n    grid = su.round(3).reset_index()\n    grid.columns = [\"K\"] + [f\"h = {c}\" for c in su.columns]\n    run.table(\"tab05_sample_use\", grid,\n              f\"Average share of the sample available for training, n = {n}.\",\n              notes=\"Rows are the number of blocks K, columns the buffer h. \"\n                    \"This is why power is weak at small T.\")\n\n    folds = ad.hblock_folds(n=n, n_blocks=N_BLOCKS, buffer=BUFFER)\n    print(f\"\\nchosen: K = {N_BLOCKS}, h = {BUFFER}, n = {n}\")\n    print(folds.to_frame().to_string(index=False))\n\n    run.fig(\"fig04_blocks\", ad.plot_block_structure(folds),\n            \"The h-block partition actually used: evaluation window, training \"\n            \"set, and the discarded buffer between them.\")",
+   "output": "|   K |   h = 0 |   h = 2 |   h = 5 |   h = 10 |\n|----:|--------:|--------:|--------:|---------:|\n|   4 |   0.75  |   0.722 |   0.681 |    0.611 |\n|   5 |   0.8   |   0.77  |   0.726 |    0.652 |\n|   6 |   0.833 |   0.802 |   0.756 |    0.679 |\n|   8 |   0.875 |   0.843 |   0.794 |    0.713 |\n    -> tab05_sample_use.csv / .tex / .md\n\nchosen: K = 5, h = 6, n = 108\n eval_start  eval_end  n_eval  n_train  share_train\n          0        20      21       81     0.750000\n         21        42      22       74     0.685185\n         43        63      21       75     0.694444\n         64        85      22       74     0.685185\n         86       107      22       80     0.740741\n    -> fig04_blocks.png",
+   "seconds": 0.2,
+   "figures": [
+    {
+     "file": "fig04_blocks.png",
+     "caption": "The h-block partition actually used: evaluation window, training set, and the discarded buffer between them."
+    }
+   ],
+   "tables": [
+    {
+     "file": "tab05_sample_use.csv",
+     "caption": "Average share of the sample available for training, n = 108.",
+     "notes": "Rows are the number of blocks K, columns the buffer h. This is why power is weak at small T.",
+     "columns": [
+      "K",
+      "h = 0",
+      "h = 2",
+      "h = 5",
+      "h = 10"
+     ],
+     "rows": [
+      {
+       "K": 4,
+       "h = 0": 0.75,
+       "h = 2": 0.722,
+       "h = 5": 0.681,
+       "h = 10": 0.611
+      },
+      {
+       "K": 5,
+       "h = 0": 0.8,
+       "h = 2": 0.77,
+       "h = 5": 0.726,
+       "h = 10": 0.652
+      },
+      {
+       "K": 6,
+       "h = 0": 0.833,
+       "h = 2": 0.802,
+       "h = 5": 0.756,
+       "h = 10": 0.679
+      },
+      {
+       "K": 8,
+       "h = 0": 0.875,
+       "h = 2": 0.843,
+       "h = 5": 0.794,
+       "h = 10": 0.713
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "title": "One fit, in full",
+   "blurb": "The headline specification on a single regime, with the whole summary printed and the simulated null drawn. Everything after this is the same call repeated across regimes and settings.",
+   "code": "def step_fit(run: Run):\n    df = ad.load_passthrough(regime=FOCUS)\n    res = run.fit(df, CONTROLS)\n    run.fits[(FOCUS, \"full\")] = res\n\n    print(res.summary())\n\n    fs = res.first_stage\n    print(f\"\\ncontrol levels retained by the adaptive projection: \"\n          f\"{int(fs.supports['Z'].sum())} of {len(CONTROLS)}\")\n    print(f\"that is the empirical counterpart of k-tilde: keep none and the \"\n          f\"null sits at the classical I(1) corner.\")\n\n    run.table(\"tab06_single_fit\",\n              ad.result_table(res, labels=[f\"{FOCUS}, full controls\"]).reset_index()\n                .rename(columns={\"index\": \"\"}),\n              f\"DML-Bounds on the {FOCUS} regime, all seven controls.\",\n              notes=f\"Restricted system wild bootstrap, B = {run.B}, \"\n                    f\"lags = {LAGS}, K = {N_BLOCKS}, h = {BUFFER}.\")\n\n    run.fig(\"fig05_null_focus\", ad.plot_bootstrap_null(res),\n            f\"The bootstrap null for {FOCUS}, with the observed statistic and \"\n            f\"the borrowed classical bound marked. The gap between the \"\n            f\"bootstrap critical value and the borrowed bound is the whole \"\n            f\"argument for not using a table.\")",
+   "output": "DML-Bounds test for a conditional long-run relationship\nH0: no level relationship after residualisation      F = 0.4043\nn = 103, controls = 7 (6 treated as I(1)), K = 5, h = 6\nselected: 6 stationary, 1 level controls\n\nrestricted system wild bootstrap: B = 999, system scheme\n  critical value (95%) = 3.9650\n  bootstrap p-value                = 0.7307\n  decision at 5%                    -> fail to reject\n\nspeed of adjustment  alpha = 0.0022\nlong-run coefficient theta = -0.9715  (se 0.8975)\n\ncontrol levels retained by the adaptive projection: 1 of 7\nthat is the empirical counterpart of k-tilde: keep none and the null sits at the classical I(1) corner.\n|                       | 1999-2007, full controls   |\n|:----------------------|:---------------------------|\n| n                     | 103                        |\n| controls              | 7                          |\n| F                     | 0.404                      |\n| bootstrap cv (95%)    | 3.965                      |\n| bootstrap p           | 0.731                      |\n| verdict               | fail to reject             |\n| alpha (speed of adj.) | 0.002                      |\n| theta (long run)      | -0.971                     |\n|                       | (0.897)                    |\n    -> tab06_single_fit.csv / .tex / .md\n    -> fig05_null_focus.png",
+   "seconds": 25.6,
+   "figures": [
+    {
+     "file": "fig05_null_focus.png",
+     "caption": "The bootstrap null for 1999-2007, with the observed statistic and the borrowed classical bound marked. The gap between the bootstrap critical value and the borrowed bound is the whole argument for not using a table."
+    }
+   ],
+   "tables": [
+    {
+     "file": "tab06_single_fit.csv",
+     "caption": "DML-Bounds on the 1999-2007 regime, all seven controls.",
+     "notes": "Restricted system wild bootstrap, B = 999, lags = 4, K = 5, h = 6.",
+     "columns": [
+      "",
+      "1999-2007, full controls"
+     ],
+     "rows": [
+      {
+       "": "n",
+       "1999-2007, full controls": "103"
+      },
+      {
+       "": "controls",
+       "1999-2007, full controls": "7"
+      },
+      {
+       "": "F",
+       "1999-2007, full controls": "0.404"
+      },
+      {
+       "": "bootstrap cv (95%)",
+       "1999-2007, full controls": "3.965"
+      },
+      {
+       "": "bootstrap p",
+       "1999-2007, full controls": "0.731"
+      },
+      {
+       "": "verdict",
+       "1999-2007, full controls": "fail to reject"
+      },
+      {
+       "": "alpha (speed of adj.)",
+       "1999-2007, full controls": "0.002"
+      },
+      {
+       "": "theta (long run)",
+       "1999-2007, full controls": "-0.971"
+      },
+      {
+       "": " ",
+       "1999-2007, full controls": "(0.897)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "title": "Every regime, both conditioning sets",
+   "blurb": "Four regimes crossed with the full and reduced control sets: eight fits, each with its own bootstrap. The reduced set drops money and the oil price, the two controls most likely to share a trend with the pass-through relation itself.",
+   "code": "def step_regimes(run: Run):\n    reduced = [c for c in CONTROLS if c not in REDUCED_DROP]\n    per_regime: dict = {}\n\n    for i, regime in enumerate(PASSTHROUGH_REGIMES):\n        df = ad.load_passthrough(regime=regime)\n        per_regime[regime] = {}\n        for name, cols in ((\"full\", CONTROLS), (\"reduced\", reduced)):\n            key = (regime, name)\n            res = run.fits.get(key) or run.fit(df, cols, seed_offset=i)\n            run.fits[key] = res\n            per_regime[regime][name] = res\n            print(f\"  {regime}  {name:8s}  n={res.nobs:4d}  F={res.stat:8.3f}  \"\n                  f\"cv={res.critical_value:8.3f}  p={res.pvalue:.3f}  \"\n                  f\"{res.decision()}\")\n        run.fig(f\"fig06_null_{regime.replace('-', '_')}\",\n                ad.plot_bootstrap_null(per_regime[regime][\"full\"]),\n                f\"Bootstrap null, {regime}, full control set.\")\n\n    print()\n    run.table(\"tab07_regimes\", ad.regime_table(per_regime),\n              \"Pass-through by monetary regime and conditioning set.\",\n              notes=f\"Critical values are the 95th percentile of the restricted \"\n                    f\"system wild bootstrap, B = {run.B}. Verdicts are bootstrap \"\n                    f\"decisions, not comparisons with a tabulated bound.\")\n\n    labels = list(PASSTHROUGH_REGIMES)\n    run.fig(\"fig07_diagnostic\", ad.plot_diagnostic(\n        {\n            \"full controls (7)\": pd.DataFrame(\n                {\"p\": [run.fits[(r, \"full\")].pvalue for r in labels]}, index=labels),\n            f\"drop {', '.join(REDUCED_DROP)} ({len(reduced)})\": pd.DataFrame(\n                {\"p\": [run.fits[(r, \"reduced\")].pvalue for r in labels]}, index=labels),\n        },\n        xlabel=\"monetary regime\",\n    ), \"Full against reduced conditioning set across the four regimes. A \"\n       \"verdict that flips when trend-sharing controls are dropped is the \"\n       \"signature of over-absorption.\")",
+   "output": "  1973-1985  full      n= 151  F=   9.111  cv=   6.705  p=0.017  reject\n  1973-1985  reduced   n= 151  F=   8.358  cv=   6.612  p=0.029  reject\n    -> fig06_null_1973_1985.png\n  1986-1998  full      n= 151  F=  18.712  cv=  13.681  p=0.012  reject\n  1986-1998  reduced   n= 151  F=  32.848  cv=  10.815  p=0.000  reject\n    -> fig06_null_1986_1998.png\n  1999-2007  full      n= 103  F=   0.404  cv=   3.965  p=0.731  fail to reject\n  1999-2007  reduced   n= 103  F=   1.373  cv=  11.399  p=0.598  fail to reject\n    -> fig06_null_1999_2007.png\n  2008-2020  full      n= 151  F=   3.703  cv=  10.673  p=0.400  fail to reject\n  2008-2020  reduced   n= 151  F=   3.384  cv=   8.863  p=0.388  fail to reject\n    -> fig06_null_2008_2020.png\n\n| regime    | conditioning set   |   n |   controls |      F |   bootstrap cv .95 |     p | verdict        |   theta |     se |\n|:----------|:-------------------|----:|-----------:|-------:|-------------------:|------:|:---------------|--------:|-------:|\n| 1973-1985 | full               | 151 |          7 |  9.111 |              6.705 | 0.017 | reject         |   3.814 | 10.355 |\n| 1973-1985 | reduced            | 151 |          5 |  8.358 |              6.612 | 0.029 | reject         |  10.285 | 14.132 |\n| 1986-1998 | full               | 151 |          7 | 18.712 |             13.681 | 0.012 | reject         |  -1.068 |  0.366 |\n| 1986-1998 | reduced            | 151 |          5 | 32.848 |             10.815 | 0     | reject         |  -1.11  |  0.275 |\n| 1999-2007 | full               | 103 |          7 |  0.404 |              3.965 | 0.731 | fail to reject |  -0.971 |  0.897 |\n| 1999-2007 | reduced            | 103 |          5 |  1.373 |             11.399 | 0.598 | fail to reject |  -0.899 |  0.379 |\n| 2008-2020 | full               | 151 |          7 |  3.703 |             10.673 | 0.4   | fail to reject |   0.571 |  0.222 |\n| 2008-2020 | reduced            | 151 |          5 |  3.384 |              8.863 | 0.388 | fail to reject |   0.555 |  0.226 |\n    -> tab07_regimes.csv / .tex / .md\n    -> fig07_diagnostic.png",
+   "seconds": 163.3,
+   "figures": [
+    {
+     "file": "fig06_null_1973_1985.png",
+     "caption": "Bootstrap null, 1973-1985, full control set."
+    },
+    {
+     "file": "fig06_null_1986_1998.png",
+     "caption": "Bootstrap null, 1986-1998, full control set."
+    },
+    {
+     "file": "fig06_null_1999_2007.png",
+     "caption": "Bootstrap null, 1999-2007, full control set."
+    },
+    {
+     "file": "fig06_null_2008_2020.png",
+     "caption": "Bootstrap null, 2008-2020, full control set."
+    },
+    {
+     "file": "fig07_diagnostic.png",
+     "caption": "Full against reduced conditioning set across the four regimes. A verdict that flips when trend-sharing controls are dropped is the signature of over-absorption."
+    }
+   ],
+   "tables": [
+    {
+     "file": "tab07_regimes.csv",
+     "caption": "Pass-through by monetary regime and conditioning set.",
+     "notes": "Critical values are the 95th percentile of the restricted system wild bootstrap, B = 999. Verdicts are bootstrap decisions, not comparisons with a tabulated bound.",
+     "columns": [
+      "regime",
+      "conditioning set",
+      "n",
+      "controls",
+      "F",
+      "bootstrap cv .95",
+      "p",
+      "verdict",
+      "theta",
+      "se"
+     ],
+     "rows": [
+      {
+       "regime": "1973-1985",
+       "conditioning set": "full",
+       "n": 151,
+       "controls": 7,
+       "F": 9.111,
+       "bootstrap cv .95": 6.705,
+       "p": 0.017,
+       "verdict": "reject",
+       "theta": 3.814,
+       "se": 10.355
+      },
+      {
+       "regime": "1973-1985",
+       "conditioning set": "reduced",
+       "n": 151,
+       "controls": 5,
+       "F": 8.358,
+       "bootstrap cv .95": 6.612,
+       "p": 0.029,
+       "verdict": "reject",
+       "theta": 10.285,
+       "se": 14.132
+      },
+      {
+       "regime": "1986-1998",
+       "conditioning set": "full",
+       "n": 151,
+       "controls": 7,
+       "F": 18.712,
+       "bootstrap cv .95": 13.681,
+       "p": 0.012,
+       "verdict": "reject",
+       "theta": -1.068,
+       "se": 0.366
+      },
+      {
+       "regime": "1986-1998",
+       "conditioning set": "reduced",
+       "n": 151,
+       "controls": 5,
+       "F": 32.848,
+       "bootstrap cv .95": 10.815,
+       "p": 0.0,
+       "verdict": "reject",
+       "theta": -1.11,
+       "se": 0.275
+      },
+      {
+       "regime": "1999-2007",
+       "conditioning set": "full",
+       "n": 103,
+       "controls": 7,
+       "F": 0.404,
+       "bootstrap cv .95": 3.965,
+       "p": 0.731,
+       "verdict": "fail to reject",
+       "theta": -0.971,
+       "se": 0.897
+      },
+      {
+       "regime": "1999-2007",
+       "conditioning set": "reduced",
+       "n": 103,
+       "controls": 5,
+       "F": 1.373,
+       "bootstrap cv .95": 11.399,
+       "p": 0.598,
+       "verdict": "fail to reject",
+       "theta": -0.899,
+       "se": 0.379
+      },
+      {
+       "regime": "2008-2020",
+       "conditioning set": "full",
+       "n": 151,
+       "controls": 7,
+       "F": 3.703,
+       "bootstrap cv .95": 10.673,
+       "p": 0.4,
+       "verdict": "fail to reject",
+       "theta": 0.571,
+       "se": 0.222
+      },
+      {
+       "regime": "2008-2020",
+       "conditioning set": "reduced",
+       "n": 151,
+       "controls": 5,
+       "F": 3.384,
+       "bootstrap cv .95": 8.863,
+       "p": 0.388,
+       "verdict": "fail to reject",
+       "theta": 0.555,
+       "se": 0.226
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 7,
+   "title": "The over-absorption diagnostic",
+   "blurb": "The estimand is conditional. If a control is itself part of the equilibrium system, residualising removes the relation rather than the confounding, and a non-rejection then means nothing. Four fits: full and reduced control sets crossed with the adaptive and unpenalised level projection.",
+   "code": "def step_diagnostic(run: Run):\n    df = ad.load_passthrough(regime=FOCUS)\n    diag = ad.trend_absorption(\n        df[\"cpi\"], df[\"neer\"], df[CONTROLS], drop=REDUCED_DROP,\n        lags=LAGS, n_blocks=N_BLOCKS, buffer=BUFFER,\n        integrated=[c for c in DEFAULT_INTEGRATED if c in CONTROLS],\n        B=run.B, seed=run.seed,\n    )\n    run.table(\"tab08_trend_absorption\", ad.diagnostic_table(diag),\n              f\"The four-fit trend-absorption diagnostic, {FOCUS} regime.\",\n              notes=f\"Dropped from the reduced set: {', '.join(diag.dropped)}.\")\n\n    print(f\"\\ndelta_m (ols - adaptive) = {diag.delta_m:+.4f}\")\n    print(f\"delta_W (full - reduced) = {diag.delta_W:+.4f}\")\n    print(f\"theta spread across fits = {diag.theta_spread:.4f}\")\n    print(f\"\\nreading: {diag.verdict()}\")",
+   "output": "| controls   | m_Z projection   |   n_controls |     F |   boot_cv95 |   boot_p | verdict        |   alpha |   theta |   theta_se |\n|:-----------|:-----------------|-------------:|------:|------------:|---------:|:---------------|--------:|--------:|-----------:|\n| full       | adaptive         |            7 | 0.404 |       3.965 |    0.731 | fail to reject |   0.002 |  -0.971 |      0.897 |\n| full       | ols              |            7 | 1.107 |       4.806 |    0.537 | fail to reject |   0.018 |  -0.012 |      0.165 |\n| reduced    | adaptive         |            5 | 1.373 |      11.005 |    0.597 | fail to reject |   0.006 |  -0.899 |      0.379 |\n| reduced    | ols              |            5 | 2.334 |       7.468 |    0.359 | fail to reject |   0.003 |  -2.791 |      7.433 |\n    -> tab08_trend_absorption.csv / .tex / .md\n\ndelta_m (ols - adaptive) = -0.1942\ndelta_W (full - reduced) = +0.1341\ntheta spread across fits = 2.7788\n\nreading: Concordant verdicts across control sets (full p=0.731, reduced p=0.597). The conclusion does not appear to be an artefact of over-absorption.",
+   "seconds": 89.1,
+   "figures": [],
+   "tables": [
+    {
+     "file": "tab08_trend_absorption.csv",
+     "caption": "The four-fit trend-absorption diagnostic, 1999-2007 regime.",
+     "notes": "Dropped from the reduced set: m2, oil.",
+     "columns": [
+      "controls",
+      "m_Z projection",
+      "n_controls",
+      "F",
+      "boot_cv95",
+      "boot_p",
+      "verdict",
+      "alpha",
+      "theta",
+      "theta_se"
+     ],
+     "rows": [
+      {
+       "controls": "full",
+       "m_Z projection": "adaptive",
+       "n_controls": 7,
+       "F": 0.404,
+       "boot_cv95": 3.965,
+       "boot_p": 0.731,
+       "verdict": "fail to reject",
+       "alpha": 0.002,
+       "theta": -0.971,
+       "theta_se": 0.897
+      },
+      {
+       "controls": "full",
+       "m_Z projection": "ols",
+       "n_controls": 7,
+       "F": 1.107,
+       "boot_cv95": 4.806,
+       "boot_p": 0.537,
+       "verdict": "fail to reject",
+       "alpha": 0.018,
+       "theta": -0.012,
+       "theta_se": 0.165
+      },
+      {
+       "controls": "reduced",
+       "m_Z projection": "adaptive",
+       "n_controls": 5,
+       "F": 1.373,
+       "boot_cv95": 11.005,
+       "boot_p": 0.597,
+       "verdict": "fail to reject",
+       "alpha": 0.006,
+       "theta": -0.899,
+       "theta_se": 0.379
+      },
+      {
+       "controls": "reduced",
+       "m_Z projection": "ols",
+       "n_controls": 5,
+       "F": 2.334,
+       "boot_cv95": 7.468,
+       "boot_p": 0.359,
+       "verdict": "fail to reject",
+       "alpha": 0.003,
+       "theta": -2.791,
+       "theta_se": 7.433
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 8,
+   "title": "Penalty sensitivity",
+   "blurb": "A verdict can turn on the penalty and the projection. Reporting one cell is specification search; reporting the grid is the method. The column to watch is the number of control levels retained, the empirical counterpart of k-tilde.",
+   "code": "def step_penalty(run: Run):\n    df = ad.load_passthrough(regime=FOCUS)\n    sweep = ad.penalty_sensitivity(\n        df[\"cpi\"], df[\"neer\"], df[CONTROLS],\n        lags_grid=(LAGS,), n_blocks=N_BLOCKS, buffer=BUFFER,\n        integrated=[c for c in DEFAULT_INTEGRATED if c in CONTROLS],\n    )\n    run.table(\"tab09_penalty_sweep\", sweep.round(4),\n              f\"Estimators against penalty rules, {FOCUS} regime.\",\n              notes=\"Rules are lambda-min, the geometric midpoint and \"\n                    \"lambda-1se. The unpenalised projection ignores the rule.\")\n\n    if sweep.attrs.get(\"theta_sign_flips\"):\n        print(\"\\n  theta changes sign across this grid: the conditioning \"\n              \"choice, not the data, is driving it.\")\n    else:\n        print(\"\\n  theta keeps its sign across the grid.\")",
+   "output": "|   lags | m_Z projection   | penalty   |   n_selected_Z |      F | boot_cv95   | boot_p   |   alpha |   theta |   theta_se |\n|-------:|:-----------------|:----------|---------------:|-------:|:------------|:---------|--------:|--------:|-----------:|\n|      4 | adaptive         | low       |              1 | 0.5454 |             |          |  0.0024 | -1.0206 |     0.9098 |\n|      4 | adaptive         | medium    |              1 | 0.2794 |             |          |  0.0021 | -0.915  |     0.8879 |\n|      4 | adaptive         | high      |              1 | 0.6869 |             |          |  0.0007 | -2.8493 |    15.7834 |\n|      4 | plain            | low       |              5 | 0.889  |             |          |  0.0145 | -0.0461 |     0.2463 |\n|      4 | plain            | medium    |              5 | 1.2933 |             |          |  0.0239 |  0.0233 |     0.1125 |\n|      4 | plain            | high      |              5 | 0.3238 |             |          |  0.0092 | -0.0565 |     0.4446 |\n|      4 | ols              | -         |              7 | 1.125  |             |          |  0.0543 |  0.0591 |     0.0341 |\n    -> tab09_penalty_sweep.csv / .tex / .md\n\n  theta changes sign across this grid: the conditioning choice, not the data, is driving it.",
+   "seconds": 5.0,
+   "figures": [],
+   "tables": [
+    {
+     "file": "tab09_penalty_sweep.csv",
+     "caption": "Estimators against penalty rules, 1999-2007 regime.",
+     "notes": "Rules are lambda-min, the geometric midpoint and lambda-1se. The unpenalised projection ignores the rule.",
+     "columns": [
+      "lags",
+      "m_Z projection",
+      "penalty",
+      "n_selected_Z",
+      "F",
+      "boot_cv95",
+      "boot_p",
+      "alpha",
+      "theta",
+      "theta_se"
+     ],
+     "rows": [
+      {
+       "lags": 4,
+       "m_Z projection": "adaptive",
+       "penalty": "low",
+       "n_selected_Z": 1,
+       "F": 0.5454,
+       "boot_cv95": null,
+       "boot_p": null,
+       "alpha": 0.0024,
+       "theta": -1.0206,
+       "theta_se": 0.9098
+      },
+      {
+       "lags": 4,
+       "m_Z projection": "adaptive",
+       "penalty": "medium",
+       "n_selected_Z": 1,
+       "F": 0.2794,
+       "boot_cv95": null,
+       "boot_p": null,
+       "alpha": 0.0021,
+       "theta": -0.915,
+       "theta_se": 0.8879
+      },
+      {
+       "lags": 4,
+       "m_Z projection": "adaptive",
+       "penalty": "high",
+       "n_selected_Z": 1,
+       "F": 0.6869,
+       "boot_cv95": null,
+       "boot_p": null,
+       "alpha": 0.0007,
+       "theta": -2.8493,
+       "theta_se": 15.7834
+      },
+      {
+       "lags": 4,
+       "m_Z projection": "plain",
+       "penalty": "low",
+       "n_selected_Z": 5,
+       "F": 0.889,
+       "boot_cv95": null,
+       "boot_p": null,
+       "alpha": 0.0145,
+       "theta": -0.0461,
+       "theta_se": 0.2463
+      },
+      {
+       "lags": 4,
+       "m_Z projection": "plain",
+       "penalty": "medium",
+       "n_selected_Z": 5,
+       "F": 1.2933,
+       "boot_cv95": null,
+       "boot_p": null,
+       "alpha": 0.0239,
+       "theta": 0.0233,
+       "theta_se": 0.1125
+      },
+      {
+       "lags": 4,
+       "m_Z projection": "plain",
+       "penalty": "high",
+       "n_selected_Z": 5,
+       "F": 0.3238,
+       "boot_cv95": null,
+       "boot_p": null,
+       "alpha": 0.0092,
+       "theta": -0.0565,
+       "theta_se": 0.4446
+      },
+      {
+       "lags": 4,
+       "m_Z projection": "ols",
+       "penalty": "-",
+       "n_selected_Z": 7,
+       "F": 1.125,
+       "boot_cv95": null,
+       "boot_p": null,
+       "alpha": 0.0543,
+       "theta": 0.0591,
+       "theta_se": 0.0341
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": 9,
+   "title": "Monte Carlo: does the borrowed bound over-reject?",
+   "blurb": "The empirical sections cannot answer whether the procedure is correctly sized, because the truth is unknown there. These designs are the paper's own, and the truth is imposed.",
+   "code": "def step_montecarlo(run: Run):\n    cells = [\n        ad.run_design(design=g, T=200, R=run.R, B=max(run.B // 5, 99), d=40,\n                      borrowed_bound=5.73, seed=run.seed,\n                      lags=2, n_blocks=5, buffer=3)\n        for g in ad.DESIGNS\n    ]\n    mc = ad.montecarlo_table(cells)\n    run.table(\"tab10_montecarlo\", mc,\n              f\"Empirical size and power, R = {run.R} replications, nominal 5%.\",\n              notes=\"'size rej @ 5.73' is the rejection rate of a true null \"\n                    \"against the borrowed classical bound; '@ boot' against \"\n                    \"the bootstrap critical value.\")\n\n    frame = mc.rename(columns={\"size rej @ 5.73\": \"rej @ borrowed\",\n                               \"size @ boot\": \"rej @ boot\"})\n    run.fig(\"fig08_size\", ad.plot_size_comparison(\n        frame, borrowed_col=\"rej @ borrowed\", boot_col=\"rej @ boot\",\n        labels={g: g for g in ad.DESIGNS},\n    ), \"Empirical size under the null. The borrowed classical bound \"\n       \"over-rejects once the nuisance space is integrated; the restricted \"\n       \"system wild bootstrap holds size near the nominal 5%.\")\n\n    print(\"\\nwhen the classical test cannot run at all:\")\n    ultra = ad.run_ultra_check(T=100, d=150, R=max(run.R // 3, 8), seed=run.seed)\n    run.table(\"tab11_ultra\", ultra,\n              \"T = 100 with d = 150 controls.\",\n              notes=\"The unpenalised conditional ECM has a singular Gram \"\n                    \"matrix in every replication, so no statistic exists. \"\n                    \"This is implementability, not a size comparison.\")",
+   "output": "| design   |   T |   d |   size rej @ 5.73 |   size @ boot |   power @ boot |\n|:---------|----:|----:|------------------:|--------------:|---------------:|\n| A        | 200 |  40 |             0.183 |         0.017 |          0.667 |\n| B        | 200 |  40 |             0.05  |         0.033 |          0.917 |\n| C        | 200 |  40 |             0.05  |         0.033 |          0.867 |\n| D        | 200 |  40 |             0.1   |         0.033 |          0.75  |\n| E        | 200 |  40 |             0.1   |         0.033 |          0.75  |\n    -> tab10_montecarlo.csv / .tex / .md\n    -> fig08_size.png\n\nwhen the classical test cannot run at all:\n| method               | implementable across draws   | statistic (median, IQR)   |\n|:---------------------|:-----------------------------|:--------------------------|\n| Unpenalised ECM      | 0.0%                         | not defined               |\n| DML-Bounds (h-block) | 100.0%                       | 2.50 (2.99)               |\n    -> tab11_ultra.csv / .tex / .md",
+   "seconds": 7522.6,
+   "figures": [
+    {
+     "file": "fig08_size.png",
+     "caption": "Empirical size under the null. The borrowed classical bound over-rejects once the nuisance space is integrated; the restricted system wild bootstrap holds size near the nominal 5%."
+    }
+   ],
+   "tables": [
+    {
+     "file": "tab10_montecarlo.csv",
+     "caption": "Empirical size and power, R = 60 replications, nominal 5%.",
+     "notes": "'size rej @ 5.73' is the rejection rate of a true null against the borrowed classical bound; '@ boot' against the bootstrap critical value.",
+     "columns": [
+      "design",
+      "T",
+      "d",
+      "size rej @ 5.73",
+      "size @ boot",
+      "power @ boot"
+     ],
+     "rows": [
+      {
+       "design": "A",
+       "T": 200,
+       "d": 40,
+       "size rej @ 5.73": 0.183,
+       "size @ boot": 0.017,
+       "power @ boot": 0.667
+      },
+      {
+       "design": "B",
+       "T": 200,
+       "d": 40,
+       "size rej @ 5.73": 0.05,
+       "size @ boot": 0.033,
+       "power @ boot": 0.917
+      },
+      {
+       "design": "C",
+       "T": 200,
+       "d": 40,
+       "size rej @ 5.73": 0.05,
+       "size @ boot": 0.033,
+       "power @ boot": 0.867
+      },
+      {
+       "design": "D",
+       "T": 200,
+       "d": 40,
+       "size rej @ 5.73": 0.1,
+       "size @ boot": 0.033,
+       "power @ boot": 0.75
+      },
+      {
+       "design": "E",
+       "T": 200,
+       "d": 40,
+       "size rej @ 5.73": 0.1,
+       "size @ boot": 0.033,
+       "power @ boot": 0.75
+      }
+     ]
+    },
+    {
+     "file": "tab11_ultra.csv",
+     "caption": "T = 100 with d = 150 controls.",
+     "notes": "The unpenalised conditional ECM has a singular Gram matrix in every replication, so no statistic exists. This is implementability, not a size comparison.",
+     "columns": [
+      "method",
+      "implementable across draws",
+      "statistic (median, IQR)"
+     ],
+     "rows": [
+      {
+       "method": "Unpenalised ECM",
+       "implementable across draws": "0.0%",
+       "statistic (median, IQR)": "not defined"
+      },
+      {
+       "method": "DML-Bounds (h-block)",
+       "implementable across draws": "100.0%",
+       "statistic (median, IQR)": "2.50 (2.99)"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

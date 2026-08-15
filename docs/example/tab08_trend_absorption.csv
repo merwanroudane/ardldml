@@ -1,0 +1,5 @@
+controls,m_Z projection,n_controls,F,boot_cv95,boot_p,verdict,alpha,theta,theta_se
+full,adaptive,7,0.404,3.965,0.731,fail to reject,0.002,-0.971,0.897
+full,ols,7,1.107,4.806,0.537,fail to reject,0.018,-0.012,0.165
+reduced,adaptive,5,1.373,11.005,0.597,fail to reject,0.006,-0.899,0.379
+reduced,ols,5,2.334,7.468,0.359,fail to reject,0.003,-2.791,7.433
