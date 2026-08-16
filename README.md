@@ -12,6 +12,11 @@
 📦 **[PyPI](https://pypi.org/project/ardldml/)** ·
 🧭 **[Step-by-step guide](docs/STEP_BY_STEP_GUIDE.md)**
 
+> **Looking for the R package?** It is in **[`r/ardldml/`](r/ardldml)** — the same
+> procedure, implemented independently in R, with a PDF vignette. The two agree
+> to four decimal places on the bundled data. This page documents the Python
+> package; `install.packages("ardldml")` once it is on CRAN.
+
 `ardldml` implements **DML-Bounds**, the procedure of
 [Villena (2026)](https://doi.org/10.2139/ssrn.6472826): a test for a long-run
 (cointegrating) relationship in which the lagged levels are first orthogonalised
