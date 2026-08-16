@@ -1,7 +1,7 @@
 ## Test environments
 
 * local Windows 11, R 4.5.2
-* R CMD check --as-cran
+* win-builder, R-devel and R-release
 
 ## R CMD check results
 
@@ -11,7 +11,22 @@
   Maintainer: 'Merwan Roudane <merwanroudane920@gmail.com>'
   New submission
 
-This is the expected note on a first submission.
+  Possibly misspelled words in DESCRIPTION:
+    ARDL, Chernozhukov, Cointegration, DML, McCracken, Ng, Pesaran,
+    Residualising, Villena, Zou, cointegration, residualisation
+
+  These are all correct. ARDL and DML are acronyms, both spelled out on first
+  use in the Description. Chernozhukov, McCracken, Ng, Pesaran, Villena and Zou
+  are cited authors. "cointegration", "residualisation" and "Residualising" are
+  standard terms in the time-series econometrics literature; the package
+  declares Language: en-GB.
+
+The "New submission" note is expected on a first submission.
+
+The tarball was built with --compact-vignettes=both, so the earlier win-builder
+WARNING about PDF size under inst/doc no longer applies: the vignette is
+compacted at build time and "checking sizes of PDF files under 'inst/doc'"
+returns OK.
 
 ## Pre-flight
 
