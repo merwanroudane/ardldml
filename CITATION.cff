@@ -2,11 +2,13 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 title: "ardldml: ARDL bounds testing with many persistent controls"
 abstract: >-
-  A Python implementation of DML-Bounds, a test for a long-run (cointegrating)
-  relationship when the conditioning set is high-dimensional and may itself
-  contain stochastic trends. Combines a balanced, cross-fitted orthogonalisation
-  of the lagged levels with a restricted system wild bootstrap. Critical values
-  are generated rather than tabulated.
+  A Python implementation of DML-Bounds, the procedure of Villena (2026): a test
+  for a long-run (cointegrating) relationship when the conditioning set is
+  high-dimensional and may itself contain stochastic trends. Combines a
+  balanced, cross-fitted orthogonalisation of the lagged levels with a
+  restricted system wild bootstrap. Critical values are generated rather than
+  tabulated. The method is due to Villena; this package is an independent
+  implementation of it, and users should cite the paper as well as the software.
 type: software
 version: "0.1.0"
 date-released: "2026-08-15"
@@ -27,6 +29,14 @@ authors:
     given-names: Merwan
     email: merwanroudane920@gmail.com
 references:
+  - type: article
+    title: "Testing Cointegration with Many Persistent Controls"
+    notes: "The paper this software implements."
+    authors:
+      - family-names: Villena
+        given-names: "Marcelo J."
+    year: 2026
+    doi: "10.2139/ssrn.6472826"
   - type: article
     title: "Bounds testing approaches to the analysis of level relationships"
     authors:

@@ -12,10 +12,16 @@
 📦 **[PyPI](https://pypi.org/project/ardldml/)** ·
 🧭 **[Step-by-step guide](docs/STEP_BY_STEP_GUIDE.md)**
 
-`ardldml` implements **DML-Bounds**: a test for a long-run (cointegrating)
-relationship in which the lagged levels are first orthogonalised against a
-high-dimensional control set, and inference comes from a restricted system wild
-bootstrap rather than from a table.
+`ardldml` implements **DML-Bounds**, the procedure of
+[Villena (2026)](https://doi.org/10.2139/ssrn.6472826): a test for a long-run
+(cointegrating) relationship in which the lagged levels are first orthogonalised
+against a high-dimensional control set, and inference comes from a restricted
+system wild bootstrap rather than from a table.
+
+> This package is an independent implementation of that paper. The method is
+> Villena's; the code, the bundled data mapping and any errors in either are
+> mine. If you use it, please cite the paper as well as the software — see
+> [Citation](#author-and-citation).
 
 ```bash
 pip install ardldml
@@ -535,6 +541,10 @@ Narayan, P. K. (2004). Reformulating critical values for the bounds
 F-statistics approach to cointegration. Monash University Discussion Paper
 02/04.
 
+Villena, M. J. (2026). Testing cointegration with many persistent controls.
+SSRN working paper. <https://doi.org/10.2139/ssrn.6472826>
+**The paper this package implements.**
+
 Pesaran, M. H., Shin, Y. and Smith, R. J. (2001). Bounds testing approaches to
 the analysis of level relationships. *Journal of Applied Econometrics*, 16(3),
 289–326.
@@ -555,12 +565,23 @@ American Statistical Association*, 101(476), 1418–1429.
 | Issues | <https://github.com/merwanroudane/ardldml/issues> |
 | Companion package (`tsdml`) | <https://pypi.org/project/tsdml/> |
 
-## Author
+## Author and citation
 
 **Dr Merwan Roudane** — <merwanroudane920@gmail.com> ·
 [github.com/merwanroudane](https://github.com/merwanroudane)
 
+Please cite **both** the method and the software. The method is due to Villena;
+this package is an independent implementation of it.
+
 ```bibtex
+@misc{villena_dmlbounds_2026,
+  author = {Villena, Marcelo J.},
+  title  = {Testing Cointegration with Many Persistent Controls},
+  year   = {2026},
+  note   = {SSRN working paper},
+  doi    = {10.2139/ssrn.6472826}
+}
+
 @software{roudane_ardldml_2026,
   author  = {Roudane, Merwan},
   title   = {ardldml: ARDL bounds testing with many persistent controls},

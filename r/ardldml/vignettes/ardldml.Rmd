@@ -1,0 +1,275 @@
+---
+title: "Bounds testing when the controls carry trends"
+author: "Dr Merwan Roudane"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  rmarkdown::pdf_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{Bounds testing when the controls carry trends}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE, comment = "#>",
+  fig.width = 6.4, fig.height = 4.0, fig.align = "center",
+  dpi = 150
+)
+options(digits = 4)
+library(ardldml)
+```
+
+# What this package is for
+
+`ardldml` implements **DML-Bounds**, the procedure of Villena (2026), for
+testing whether two series share a long-run relationship *given* a control set
+that may be large and may itself be non-stationary.
+
+The classical Autoregressive Distributed Lag (ARDL) bounds test of Pesaran,
+Shin and Smith (2001) works inside a conditional error-correction model
+
+$$\Delta Y_t = a_0 + \rho Y_{t-1} + \theta D_{t-1} + \delta \Delta D_t
+  + \sum_i \gamma_i \Delta Y_{t-i} + e_t,$$
+
+with the joint null $H_0: \rho = \theta = 0$ on the lagged levels. Because the
+integration order of $D$ is unknown, the test *brackets* it: the lower critical
+value treats $D$ as $I(0)$, the upper as $I(1)$, and the statistic is read
+against the interval. Outside it the verdict is conclusive; inside it,
+inconclusive.
+
+## The second unknown
+
+Now condition on a large control set $W_t$. Projecting the lagged levels onto
+controls that themselves carry stochastic trends can **absorb** part of the
+long-run variation that identifies the error-correction relation. What then
+governs the null is not the integration order of the original regressors but
+the number of stochastic trends that survive residualisation. The bracket
+reappears, over a different quantity.
+
+```{r bracket, fig.cap = "As the effective integrated count falls, the limiting null slides from the I(1) endpoint to the I(0) endpoint. Classical bounds testing is the right-hand end."}
+plot_bracket(k = 10, k_tilde = 6)
+```
+
+One consequence is worth stating plainly, because it decides how much of this
+you need to care about:
+
+> **Stationary controls are harmless.** A stationary regressor cannot track the
+> stochastic trend of an integrated one, so it cannot absorb one. Add a hundred
+> and the effective count is unchanged. Only *integrated* controls make the
+> bracket live.
+
+## Why no bounds table ships with this package
+
+Tabulated critical values are not valid in this setting, and the
+generated-regressor remainder is not negligible at the sample sizes applied work
+actually uses. Every critical value here is computed instead: by simulation for
+the classical bracket, and by a restricted system wild bootstrap for inference
+on real data.
+
+# The data
+
+The package bundles nine monthly United States macroeconomic series from
+FRED-MD (McCracken and Ng, 2016), 1973-01 to 2020-12, so every example runs
+offline. The application is exchange-rate pass-through: does the dollar pass
+through to consumer prices in the long run, conditional on the macro-financial
+environment?
+
+```{r data}
+df <- passthrough_regime("1999-2007")
+dim(df)
+CONTROLS
+DEFAULT_INTEGRATED
+```
+
+Testing within a monetary regime rather than across the whole sample avoids
+conflating a structural break with a long-run relationship.
+
+# A first fit
+
+```{r fit}
+W <- as.matrix(df[, CONTROLS])
+fit <- dml_bounds(df$cpi, df$neer, W,
+                  lags = 4, n_blocks = 5, buffer = 6,
+                  integrated = DEFAULT_INTEGRATED)
+fit
+```
+
+Three moving parts sit behind that call.
+
+**A balanced first stage.** The two projections use *different* regressors,
+because their targets have different integration orders. $\Delta Y_t$ is
+stationary, so the integrated controls enter its projection in first
+differences; regressing a stationary target on integrated levels would be
+unbalanced and spurious. The tested levels $Z_{t-1} = (Y_{t-1}, D_{t-1})$ are
+integrated and are projected on the control *levels*. All trend absorption
+happens in that second projection.
+
+```{r design}
+des <- build_balanced_design(df$cpi, df$neer, W, lags = 4,
+                             integrated = DEFAULT_INTEGRATED)
+des
+```
+
+**h-block cross-fitting.** The sample is cut into $K$ contiguous chronological
+blocks, and each is evaluated by a model trained on the others *minus an
+$h$-observation buffer*. The buffer decouples first-stage error from the
+evaluation-fold innovations. It costs sample, and the package makes that cost
+visible before you commit to a configuration:
+
+```{r sampleuse}
+round(sample_use_table(nrow(df)), 3)
+```
+
+**A restricted system wild bootstrap.** One Rademacher weight is applied to the
+*stacked* pair of conditional and marginal residuals, and both series are
+regenerated jointly. This preserves the contemporaneous correlation between
+them, which is the endogeneity channel the whole framework exists for. A scheme
+that holds $D$ fixed and reweights only the equation error simulates a world
+with zero correlation whatever the data say.
+
+```{r boot}
+fit <- dml_bootstrap(fit, B = 49, seed = 20260625)
+summary(fit)
+```
+
+```{r nullplot, fig.cap = "The bootstrap null against the borrowed classical bound. The gap between the two is the argument for not using a table."}
+plot(fit)
+```
+
+The number of bootstrap draws is kept small here so the vignette builds
+quickly. Use `B = 999` for anything you intend to report.
+
+# The diagnostic you must run
+
+The estimand is conditional. If a control is itself part of the equilibrium
+system, residualising removes the relation rather than the confounding, and a
+non-rejection then means nothing.
+
+`trend_absorption()` runs four fits -- full and reduced control sets crossed
+with the adaptive and unpenalised level projection -- and reads the two gaps
+together with the stability of the long-run coefficient.
+
+```{r absorb}
+ta <- trend_absorption(df$cpi, df$neer, W, drop = REDUCED_DROP,
+                       B = 19, seed = 1,
+                       lags = 4, n_blocks = 5, buffer = 6,
+                       integrated = DEFAULT_INTEGRATED)
+ta
+```
+
+A verdict that flips when trend-sharing controls are dropped is the signature
+of over-absorption, and the reduced-set verdict is then the more credible one.
+Concordant verdicts indicate the conclusion is not an artefact. This is a
+hypothesis-generating device, not a formal test: it has no size and no power,
+and it tells you where to look.
+
+# Penalty sensitivity
+
+A verdict can turn on the penalty and on the projection. Reporting one cell is
+specification search; reporting the grid is the method. The column to watch is
+`n_selected_Z`, the number of control *levels* retained -- the empirical
+counterpart of the effective integrated count.
+
+```{r sweep}
+sw <- penalty_sensitivity(df$cpi, df$neer, W,
+                          lags_grid = 4, n_blocks = 5, buffer = 6,
+                          integrated = DEFAULT_INTEGRATED)
+sw
+attr(sw, "theta_sign_flips")
+```
+
+A long-run coefficient that changes sign across this grid is a warning that the
+conditioning set, not the data, is driving the answer.
+
+# Where the critical values come from
+
+The classical bracket is regenerated from the data-generating process Pesaran,
+Shin and Smith printed in the notes to their Table CI, rather than transcribed.
+That makes it checkable against print, and extends it to any sample size and
+past $k = 10$, where the published tables stop.
+
+```{r pss}
+sim <- simulate_pss_bounds(k = 1, case = 3, TT = 1000, nsim = 300, seed = 11)
+sim
+pss_reference(k = 1, case = 3)
+```
+
+With only 300 replications the simulated values carry visible Monte Carlo
+error; the published table used 40,000. The point of the comparison is that the
+generator can be checked, not that 300 draws suffice.
+
+The classical test itself is available for benchmarking, and reads its
+statistic against a bracket simulated at *its own* sample size rather than one
+calibrated at $T = 1000$:
+
+```{r classical}
+cb <- classical_bounds_test(df$cpi, cbind(neer = df$neer), lags = 4,
+                            nsim = 300, seed = 11)
+cb
+```
+
+# Validation
+
+The statistic is deterministic given the specification, so it can be checked
+against an independent implementation of the same procedure. On the four
+monetary regimes with the full control set, this package and a separate Python
+implementation agree to four decimal places:
+
+| regime | this package | reference |
+|:---|---:|---:|
+| 1973--1985 | 9.111 | 9.111 |
+| 1986--1998 | 18.712 | 18.712 |
+| 1999--2007 | 0.404 | 0.404 |
+| 2008--2020 | 3.703 | 3.703 |
+
+The test suite asserts these values, along with the classical statistics and
+the fold structure, so a change that moves any of them fails loudly.
+
+# Limitations
+
+Stated plainly, because they affect how a result should be read.
+
+* **Power is modest at small $T$.** Under integrated nuisance, bootstrap power
+  reaches useful levels only from roughly $T = 250$. Much applied ARDL work runs
+  at $n = 30\text{--}80$, where this is not the right tool; use the classical
+  test with simulated finite-sample bounds instead.
+* **Over-absorption is not testable.** The requirement that controls span
+  confounding trends but not the cointegrating relation cannot be verified. The
+  diagnostic is a signal, not a guarantee.
+* **The penalty can change the verdict.** Report the grid, not one cell.
+* **The long-run coefficient is less reliable than the verdict.** Across
+  regimes it is unstable and often imprecisely estimated, while the test
+  decisions are stable.
+* **The integrated block must stay small.** The validity theory keeps it
+  fixed-dimensional; selecting among many integrated regressors is an open
+  problem, and the package warns when you cross a threshold.
+
+# References
+
+Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey,
+W. and Robins, J. (2018). Double/debiased machine learning for treatment and
+structural parameters. *The Econometrics Journal*, 21(1), C1--C68.
+doi:10.1111/ectj.12097
+
+McCracken, M. W. and Ng, S. (2016). FRED-MD: A monthly database for
+macroeconomic research. *Journal of Business & Economic Statistics*, 34(4),
+574--589. doi:10.1080/07350015.2015.1086655
+
+Narayan, P. K. (2004). Reformulating critical values for the bounds
+F-statistics approach to cointegration. Monash University Discussion Paper
+02/04.
+
+Pesaran, M. H., Shin, Y. and Smith, R. J. (2001). Bounds testing approaches to
+the analysis of level relationships. *Journal of Applied Econometrics*, 16(3),
+289--326. doi:10.1002/jae.616
+
+Villena, M. J. (2026). Testing cointegration with many persistent controls.
+SSRN working paper. doi:10.2139/ssrn.6472826
+
+Zou, H. (2006). The adaptive lasso and its oracle properties. *Journal of the
+American Statistical Association*, 101(476), 1418--1429.
+doi:10.1198/016214506000000735

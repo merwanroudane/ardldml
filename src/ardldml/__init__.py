@@ -7,6 +7,14 @@ It combines a balanced, cross-fitted orthogonalisation of the lagged levels
 against the controls with a restricted system wild bootstrap that regenerates
 the outcome and the focal regressor jointly under the null.
 
+The procedure is due to Villena (2026); this package is an independent
+implementation of it. Every reference to "the paper" in this codebase is to:
+
+    Villena, M. J. (2026). Testing cointegration with many persistent
+    controls. SSRN working paper. https://doi.org/10.2139/ssrn.6472826
+
+Please cite it alongside the software.
+
 The idea in one paragraph
 -------------------------
 Classical ARDL bounds testing brackets one unknown: whether the regressors are

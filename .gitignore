@@ -22,3 +22,9 @@ output/*.csv
 
 # Source papers (copyrighted; kept locally, not distributed)
 *.pdf
+
+# R build artifacts
+*.Rcheck/
+*.tar.gz
+.Rproj.user/
+.Rhistory

@@ -1,0 +1,30 @@
+citHeader("To cite ardldml in publications, please cite both the method and the software:")
+
+bibentry(
+  bibtype = "Misc",
+  title   = "Testing Cointegration with Many Persistent Controls",
+  author  = person("Marcelo J.", "Villena"),
+  year    = "2026",
+  note    = "SSRN working paper",
+  doi     = "10.2139/ssrn.6472826",
+  textVersion = paste(
+    "Villena, M. J. (2026).",
+    "Testing Cointegration with Many Persistent Controls.",
+    "SSRN working paper. doi:10.2139/ssrn.6472826"
+  )
+)
+
+bibentry(
+  bibtype = "Manual",
+  title   = "ardldml: Bounds Testing for Cointegration with Many Persistent Controls",
+  author  = person("Merwan", "Roudane"),
+  year    = "2026",
+  note    = "R package version 0.1.0",
+  url     = "https://github.com/merwanroudane/ardldml",
+  textVersion = paste(
+    "Roudane, M. (2026).",
+    "ardldml: Bounds Testing for Cointegration with Many Persistent Controls.",
+    "R package version 0.1.0.",
+    "https://github.com/merwanroudane/ardldml"
+  )
+)

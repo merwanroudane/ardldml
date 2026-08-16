@@ -246,7 +246,9 @@ footer .wrap{display:flex; flex-wrap:wrap; gap:26px; justify-content:space-betwe
     <h1>ardldml<span class="dot">.</span></h1>
     <p class="tagline">ARDL bounds testing for cointegration when your conditioning set is
       high-dimensional — and may itself be carrying stochastic trends.</p>
-    <p class="byline">by <strong>Dr Merwan Roudane</strong></p>
+    <p class="byline">by <strong>Dr Merwan Roudane</strong> · implementing the DML-Bounds
+      procedure of <a href="https://doi.org/10.2139/ssrn.6472826"
+      style="color:#FFF3DC; border-bottom-color:rgba(255,243,220,.5)">Villena (2026)</a></p>
     <div class="badges">
       <a href="https://pypi.org/project/ardldml/"><img alt="PyPI" src="https://img.shields.io/pypi/v/ardldml?color=E8871A&label=pypi&style=flat-square"></a>
       <a href="https://pypi.org/project/ardldml/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/ardldml?color=F5B841&style=flat-square"></a>
@@ -467,7 +469,7 @@ print(res.summary())</code></pre>
   </div>
 
   <div class="callout">
-    <p><strong>On replication.</strong> The source paper does not publish its FRED series
+    <p><strong>On replication.</strong> Villena (2026) does not publish its FRED series
       codes, data vintage, per-control log/level treatment, or its cross-fitting settings,
       so the data mapping here is inferred. These numbers are <em>not</em> a replication of
       its published table and should not be cited as one. What does reproduce exactly is the
@@ -649,7 +651,18 @@ python examples/04_full_analysis.py --skip-montecarlo</code></pre>
       series with reverse cross-fitting and Goldilocks-zone tuning.</p>
   </div>
 
-<pre><code>@software{roudane_ardldml_2026,
+  <p>Please cite <strong>both</strong> the method and the software. The method is
+    Villena's; this package is an independent implementation of it.</p>
+
+<pre><code>@misc{villena_dmlbounds_2026,
+  author = {Villena, Marcelo J.},
+  title  = {Testing Cointegration with Many Persistent Controls},
+  year   = {2026},
+  note   = {SSRN working paper},
+  doi    = {10.2139/ssrn.6472826}
+}
+
+@software{roudane_ardldml_2026,
   author  = {Roudane, Merwan},
   title   = {ardldml: ARDL bounds testing with many persistent controls},
   year    = {2026},
@@ -659,6 +672,9 @@ python examples/04_full_analysis.py --skip-montecarlo</code></pre>
 
   <h3>References</h3>
   <p class="muted">
+    <strong>Villena, M. J. (2026). Testing cointegration with many persistent controls.
+    SSRN working paper. <a href="https://doi.org/10.2139/ssrn.6472826">doi:10.2139/ssrn.6472826</a>
+    — the paper this package implements.</strong><br>
     Pesaran, M. H., Shin, Y. and Smith, R. J. (2001). Bounds testing approaches to the
     analysis of level relationships. <em>Journal of Applied Econometrics</em>, 16(3),
     289–326.<br>
