@@ -10,10 +10,10 @@ Description: An implementation of the DML-Bounds procedure of Villena (2026)
     time-series settings. The Autoregressive Distributed Lag (ARDL) bounds test
     of Pesaran, Shin and Smith (2001) <doi:10.1002/jae.616> avoids pretesting
     the integration order of the regressors but is not designed for a
-    high-dimensional conditioning set. Residualizing the lagged levels against
+    high-dimensional conditioning set. Residualising the lagged levels against
     persistent controls can absorb stochastic trends and thereby change the
     finite-sample null distribution, so what governs the null is the effective
-    number of stochastic trends surviving residualization rather than the
+    number of stochastic trends surviving residualisation rather than the
     integration order of the original regressors. The procedure combines
     h-block cross-fitting, a balanced nuisance projection in the Double Machine
     Learning (DML) style of Chernozhukov and others (2018)
@@ -29,6 +29,7 @@ Description: An implementation of the DML-Bounds procedure of Villena (2026)
     offline.
 License: MIT + file LICENSE
 Encoding: UTF-8
+Language: en-GB
 Depends: R (>= 4.1.0)
 Imports: glmnet, stats, graphics, grDevices, utils
 Suggests: knitr, rmarkdown, testthat (>= 3.0.0), tseries
